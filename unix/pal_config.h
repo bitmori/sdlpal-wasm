@@ -60,7 +60,7 @@
 # define PAL_PORTYEAR         NULL
 
 # define PAL_HAS_CONFIG_PAGE  1
-# define PAL_HAS_NATIVEMIDI 1
+# define PAL_HAS_NATIVEMIDI 0
 
 #include <sys/time.h>
 
@@ -68,4 +68,8 @@
 # define PAL_HAS_GLSL 1
 #endif
 
+# define PAL_HAS_MP3           0
+# define PAL_HAS_OGG           0
+# define PAL_HAS_OPUS          0
+# define PAL_HAS_TOUCH         0
 #endif

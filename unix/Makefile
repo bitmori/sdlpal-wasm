@@ -14,20 +14,21 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $*$(INTER).Td
 
 GTEST_DIR = ../3rd/googletest/googletest
 
-USE_ALSA ?= $(shell echo "int main(){}" | gcc -o /dev/null -x c - -lasound 2>/dev/null && echo 1)
-ifeq (${USE_ALSA},1)
-	MIDI_CFILES = $(wildcard ../native_midi/*.c) native_midi_alsa.c
-	MIDI_CPPFILES =
-	MIDI_LDFLAGS = -lasound
-else
-	MIDI_CFILES =
-	MIDI_CPPFILES = native_midi.cpp
-	MIDI_LDFLAGS =
-endif
+# USE_ALSA ?= $(shell echo "int main(){}" | gcc -o /dev/null -x c - -lasound 2>/dev/null && echo 1)
+# ifeq (${USE_ALSA},1)
+# 	MIDI_CFILES = $(wildcard ../native_midi/*.c) native_midi_alsa.c
+# 	MIDI_CPPFILES =
+# 	MIDI_LDFLAGS = -lasound
+# else
+# 	MIDI_CFILES =
+# 	MIDI_CPPFILES = native_midi.cpp
+# 	MIDI_LDFLAGS =
+# endif
 
-SOURCES = .. ../adplug ../liboggvorbis/src ../libopusfile/src ../libopusfile/celt ../libopusfile/silk ../libopusfile/silk/float ../libmad
-CFILES = $(foreach dir, $(SOURCES), $(wildcard $(dir)/*.c)) $(MIDI_CFILES)
-CPPFILES = $(foreach dir, $(SOURCES), $(wildcard $(dir)/*.cpp)) unix.cpp $(MIDI_CPPFILES)
+#SOURCES = ../src ../src/adplug ../src/liboggvorbis/src ../src/libopusfile/src ../src/libopusfile/celt ../src/libopusfile/silk ../src/libopusfile/silk/float ../src/libmad
+SOURCES = ../src ../src/adplug ../src/libmad
+CFILES = $(foreach dir, $(SOURCES), $(wildcard $(dir)/*.c))
+CPPFILES = $(foreach dir, $(SOURCES), $(wildcard $(dir)/*.cpp)) unix.cpp
 TOBJFILES = $(CFILES:.c=$(INTER).o) $(CPPFILES:.cpp=$(INTER).o)
 DEPFILES = $(OBJFILES:.o=.d)
 TEST_CPPFILES = $(wildcard ../tests/*.cpp)
@@ -52,13 +53,13 @@ CXX = $(HOST)g++
 override CCFLAGS += `$(SDL_CONFIG) --cflags` -D_GNU_SOURCE -g -Wall -O2 -fno-strict-aliasing $(EXTRA_CCFLAGS) $(TEST_CCFLAGS) $(GENERATED)
 CXXFLAGS = $(CCFLAGS) -std=c++11 $(FLTK_CXXFLAGS)
 CFLAGS = $(CCFLAGS) -std=gnu99 $(FLTK_CFLAGS)
-LDFLAGS = `$(SDL_CONFIG) --libs` $(FLTK_LDFLAGS) $(MIDI_LDFLAGS) -lstdc++ -lm
+LDFLAGS = `$(SDL_CONFIG) --libs` $(FLTK_LDFLAGS) -lstdc++ -lm
 TEST_CXXFLAGS += -isystem $(GTEST_DIR)/include -I $(GTEST_DIR) -g -Wall -Wextra -pthread
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
 	LDFLAGS += -framework OpenGL
-	OBJFILES = $(filter-out ../mini_glloader.unix.o, $(TOBJFILES))
+	OBJFILES = $(filter-out ../src/mini_glloader.unix.o, $(TOBJFILES))
 else
 	LDFLAGS += -lGL -pthread
 	OBJFILES = $(TOBJFILES)
@@ -101,9 +102,9 @@ clean:
 
 -include $(DEPFILES)
 
-../liboggvorbis/%$(INTER).o: EXTRA_CCFLAGS := -I../liboggvorbis/include -I../liboggvorbis/src
-../libopusfile/%$(INTER).o: EXTRA_CCFLAGS := -I../liboggvorbis/include -I../libopusfile/include -I../libopusfile/src -I../libopusfile/celt -I../libopusfile/silk -I../libopusfile/silk/float -DHAVE_CONFIG_H
-%$(INTER).o: EXTRA_CCFLAGS := -I. -I.. -I../liboggvorbis/include -I../libopusfile/include -DPAL_HAS_PLATFORM_SPECIFIC_UTILS
+#../src/liboggvorbis/%$(INTER).o: EXTRA_CCFLAGS := -I../src/liboggvorbis/include -I../src/liboggvorbis/src
+#../src/libopusfile/%$(INTER).o: EXTRA_CCFLAGS := -I../src/liboggvorbis/include -I../src/libopusfile/include -I../src/libopusfile/src -I../src/libopusfile/celt -I../src/libopusfile/silk -I../src/libopusfile/silk/float -DHAVE_CONFIG_H
+%$(INTER).o: EXTRA_CCFLAGS := -I. -I.. -I../src -I../src/liboggvorbis/include -I../src/libopusfile/include -DPAL_HAS_PLATFORM_SPECIFIC_UTILS
 check: TEST_CCFLAGS = -I. -I.. -DUNIT_TEST=1 -isystem $(GTEST_DIR)/include
 check: $(TEST_TARGET)
 	@echo [EXEC] $(TEST_TARGET)
