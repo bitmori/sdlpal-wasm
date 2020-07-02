@@ -26,7 +26,7 @@ GTEST_DIR = ../3rd/googletest/googletest
 # endif
 
 #SOURCES = ../src ../src/adplug ../src/liboggvorbis/src ../src/libopusfile/src ../src/libopusfile/celt ../src/libopusfile/silk ../src/libopusfile/silk/float ../src/libmad
-SOURCES = ../src ../src/adplug ../src/libmad ../src/wren/vm
+SOURCES = ../src ../src/adplug ../src/libmad
 CFILES = $(foreach dir, $(SOURCES), $(wildcard $(dir)/*.c))
 CPPFILES = $(foreach dir, $(SOURCES), $(wildcard $(dir)/*.cpp)) unix.cpp
 TOBJFILES = $(CFILES:.c=$(INTER).o) $(CPPFILES:.cpp=$(INTER).o)
@@ -50,7 +50,7 @@ endif
 
 CC = $(HOST)gcc
 CXX = $(HOST)g++
-override CCFLAGS += `$(SDL_CONFIG) --cflags` -DWREN_OPT_META=0 -DWREN_OPT_RANDOM=0 -D_GNU_SOURCE -g -Wall -O2 -fno-strict-aliasing $(EXTRA_CCFLAGS) $(TEST_CCFLAGS) $(GENERATED)
+override CCFLAGS += `$(SDL_CONFIG) --cflags` -D_GNU_SOURCE -g -Wall -O2 -fno-strict-aliasing $(EXTRA_CCFLAGS) $(TEST_CCFLAGS) $(GENERATED)
 CXXFLAGS = $(CCFLAGS) -std=c++11 $(FLTK_CXXFLAGS)
 CFLAGS = $(CCFLAGS) -std=gnu99 $(FLTK_CFLAGS)
 LDFLAGS = `$(SDL_CONFIG) --libs` $(FLTK_LDFLAGS) -lstdc++ -lm
@@ -104,7 +104,7 @@ clean:
 
 #../src/liboggvorbis/%$(INTER).o: EXTRA_CCFLAGS := -I../src/liboggvorbis/include -I../src/liboggvorbis/src
 #../src/libopusfile/%$(INTER).o: EXTRA_CCFLAGS := -I../src/liboggvorbis/include -I../src/libopusfile/include -I../src/libopusfile/src -I../src/libopusfile/celt -I../src/libopusfile/silk -I../src/libopusfile/silk/float -DHAVE_CONFIG_H
-%$(INTER).o: EXTRA_CCFLAGS := -I. -I.. -I../src -I../src/wren/include -I../src/liboggvorbis/include -I../src/libopusfile/include -DPAL_HAS_PLATFORM_SPECIFIC_UTILS
+%$(INTER).o: EXTRA_CCFLAGS := -I. -I.. -I../src -I../src/liboggvorbis/include -I../src/libopusfile/include -DPAL_HAS_PLATFORM_SPECIFIC_UTILS
 check: TEST_CCFLAGS = -I. -I.. -DUNIT_TEST=1 -isystem $(GTEST_DIR)/include
 check: $(TEST_TARGET)
 	@echo [EXEC] $(TEST_TARGET)

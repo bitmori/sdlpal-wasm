@@ -284,3 +284,5 @@ emscripten/*.cpp
 *.DS_Store
 
 src/wren/optional
+
+pal/
