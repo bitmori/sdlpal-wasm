@@ -52,6 +52,7 @@
 #include "game.h"
 #include "midi.h"
 #include "aviplay.h"
+#include "es_bridge.h"
 
 VOID
 PAL_Shutdown(

@@ -25,10 +25,11 @@
 BATTLE          g_Battle;
 
 WORD
-g_rgPlayerPos[3][3][2] = {
+g_rgPlayerPos[4][4][2] = {
    {{240, 170}},                         // one player
    {{200, 176}, {256, 152}},             // two players
-   {{180, 180}, {234, 170}, {270, 146}}  // three players
+   {{180, 180}, {234, 170}, {270, 146}},  // three players
+   {{160, 180}, {222, 172}, {260, 160}, {290, 128}},    // four players
 };
 
 VOID
@@ -1103,7 +1104,12 @@ PAL_BattlePlayerEscape(
                   PAL_XY(PAL_X(g_Battle.rgPlayer[j].pos) + 6,
                          PAL_Y(g_Battle.rgPlayer[j].pos) + 3);
                break;
-
+            // @@@ - extra 4th role:
+            case 3:
+               g_Battle.rgPlayer[j].pos =
+                  PAL_XY(PAL_X(g_Battle.rgPlayer[j].pos) + 6,
+                  PAL_Y(g_Battle.rgPlayer[j].pos) + 3);
+               break;
             default:
                assert(FALSE); // Not possible
                break;
@@ -1215,6 +1221,7 @@ PAL_StartBattle(
          g_Battle.rgEnemy[i].wScriptOnBattleEnd = gpGlobals->g.rgObject[w].enemy.wScriptOnBattleEnd;
          g_Battle.rgEnemy[i].wScriptOnReady = gpGlobals->g.rgObject[w].enemy.wScriptOnReady;
          g_Battle.rgEnemy[i].iColorShift = 0;
+         g_Battle.rgEnemy[i].dwMaxHealth = g_Battle.rgEnemy[i].e.wHealth;
 
 #ifndef PAL_CLASSIC
          g_Battle.rgEnemy[i].flTimeMeter = 50;

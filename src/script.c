@@ -2124,6 +2124,7 @@ PAL_InterpretInstruction(
       //
       // Set the player party
       //
+      if (!gpGlobals->fLockTeamMember) {
       gpGlobals->wMaxPartyMemberIndex = 0;
       for (i = 0; i < 3; i++)
       {
@@ -2144,7 +2145,7 @@ PAL_InterpretInstruction(
       }
 
       gpGlobals->wMaxPartyMemberIndex--;
-
+      }
       //
       // Reload the player sprites
       //

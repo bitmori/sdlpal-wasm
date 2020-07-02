@@ -23,10 +23,12 @@
 #include "main.h"
 #include "fight.h"
 
-extern WORD g_rgPlayerPos[3][3][2];
+extern WORD g_rgPlayerPos[4][4][2];
 
 static int g_iCurMiscMenuItem = 0;
 static int g_iCurSubMenuItem = 0;
+
+static VOID PAL_EnemyStatus(void);
 
 VOID
 PAL_PlayerInfoBox(
@@ -373,7 +375,8 @@ PAL_BattleUIDrawMiscMenu(
       {  1,      BATTLEUI_LABEL_INVENTORY, TRUE,     PAL_XY(16, 50)  },
       {  2,      BATTLEUI_LABEL_DEFEND,    TRUE,     PAL_XY(16, 68)  },
       {  3,      BATTLEUI_LABEL_FLEE,      TRUE,     PAL_XY(16, 86)  },
-      {  4,      BATTLEUI_LABEL_STATUS,    TRUE,     PAL_XY(16, 104) }
+      {  4,      BATTLEUI_LABEL_STATUS,    TRUE,     PAL_XY(16, 104) },
+      {  5,      BATTLEUI_LABEL_ENEMYINFO, TRUE,     PAL_XY(16, 122) },
    };
 #else
    MENUITEM rgMenuItem[] = {
@@ -389,12 +392,12 @@ PAL_BattleUIDrawMiscMenu(
    //
    // Draw the box
    //
-   PAL_CreateBox(PAL_XY(2, 20), 4, PAL_MenuTextMaxWidth(rgMenuItem, sizeof(rgMenuItem)/sizeof(MENUITEM)) - 1, 0, FALSE);
+   PAL_CreateBox(PAL_XY(2, 20), BATTLEUI_MISC_ITEMS - 1, PAL_MenuTextMaxWidth(rgMenuItem, sizeof(rgMenuItem)/sizeof(MENUITEM)) - 1, 0, FALSE);
 
    //
    // Draw the menu items
    //
-   for (i = 0; i < 5; i++)
+   for (i = 0; i < BATTLEUI_MISC_ITEMS; i++)
    {
       bColor = MENUITEM_COLOR;
 
@@ -446,13 +449,13 @@ PAL_BattleUIMiscMenuUpdate(
       g_iCurMiscMenuItem--;
       if (g_iCurMiscMenuItem < 0)
       {
-         g_iCurMiscMenuItem = 4;
+         g_iCurMiscMenuItem = BATTLEUI_MISC_ITEMS - 1;
       }
    }
    else if (g_InputState.dwKeyPress & (kKeyDown | kKeyRight))
    {
       g_iCurMiscMenuItem++;
-      if (g_iCurMiscMenuItem > 4)
+      if (g_iCurMiscMenuItem > BATTLEUI_MISC_ITEMS - 1)
       {
          g_iCurMiscMenuItem = 0;
       }
@@ -910,6 +913,11 @@ PAL_BattleUIUpdate(
             w = 0;
          }
 
+         if (gpGlobals->wMaxPartyMemberIndex >= 3) {
+            PAL_PlayerInfoBox(PAL_XY(14 + 77 * i, 165), wPlayerRole, w, j, FALSE);
+            continue;
+         }
+
          PAL_PlayerInfoBox(PAL_XY(91 + 77 * i, 165), wPlayerRole,
             w, j, FALSE);
       }
@@ -1028,6 +1036,14 @@ PAL_BattleUIUpdate(
             {SPRITENUM_BATTLEICON_COOPMAGIC, PAL_XY(54, 155), kBattleUIActionCoopMagic},
             {SPRITENUM_BATTLEICON_MISCMENU,  PAL_XY(27, 170), kBattleUIActionMisc}
          };
+
+         if (gpGlobals->wMaxPartyMemberIndex >= 3)
+         {
+            for (i = 0; i < 4; i++)
+            {
+               rgItems[i].pos -= (37 << 16);
+            }
+         }
 
          if (g_Battle.UI.MenuState == kBattleMenuMain)
          {
@@ -1398,6 +1414,10 @@ PAL_BattleUIUpdate(
 
                case 5: // status
                   PAL_PlayerStatus();
+                  break;
+
+               case 6: // enemy info
+                  PAL_EnemyStatus();
                   break;
                }
             }
@@ -1796,6 +1816,170 @@ PAL_BattleUIShowNum(
          g_Battle.UI.rgShowNum[i].dwTime = SDL_GetTicks();
 
          break;
+      }
+   }
+}
+
+
+static VOID PAL_EnemyStatus(void)
+{
+   PAL_LARGE BYTE bufBackground[320 * 200];
+   INT iCurrent;
+   BATTLEENEMY be;
+   INT i, x, y, h;
+   WORD w;
+   LPCBITMAPRLE lBMR;
+   PAL_POS pos;
+
+   //    const int rgEquipPos[MAX_PLAYER_EQUIPMENTS][2] = {
+   //        {190, 0}, {248, 40}, {252, 102}, {202, 134}, {142, 142}, {82, 126}
+   //    };
+
+   PAL_MKFDecompressChunk(bufBackground, 320 * 200, STATUS_BACKGROUND_FBPNUM,
+                          gpGlobals->f.fpFBP);
+
+   iCurrent = 0;
+
+   while (iCurrent >= 0 && iCurrent < MAX_ENEMIES_IN_TEAM)
+   {
+      be = g_Battle.rgEnemy[iCurrent];
+      if (be.wObjectID == 0 || /*be.dwActualHealth == 0*/ be.e.wHealth == 0)
+      {
+         iCurrent++;
+         continue;
+      }
+
+      // Draw the background image
+      PAL_FBPBlitToSurface(bufBackground, gpScreen);
+
+      // 怪物图像
+      lBMR = PAL_SpriteGetFrame(g_Battle.rgEnemy[iCurrent].lpSprite, g_Battle.rgEnemy[iCurrent].wCurrentFrame);
+      pos = PAL_XY(200, 100);
+      pos = PAL_XY(PAL_X(pos) - PAL_RLEGetWidth(lBMR) / 2, PAL_Y(pos) - PAL_RLEGetHeight(lBMR) / 2);
+      PAL_RLEBlitToSurface(lBMR, gpScreen, pos);
+
+      // Draw the text labels
+      i = 0;
+      x = 6;
+      y = 6;
+      h = 19;
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_EXP), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_LEVEL), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_HP), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_POISONDEF), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      //        PAL_DrawText(PAL_GetWord(STATUS_LABEL_POISONRESISTANCE), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE);
+      //        PAL_DrawText(PAL_GetWord(STATUS_LABEL_PHYSICALRESISTANCE), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE);
+
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_MONSTERPOWER), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_STEALITEM), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_ATKEFFECT), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_5ELEM), PAL_XY(x, y + (++i) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+
+      // Draw the stats
+      i = 0;
+      x = 42;
+      y = 11;
+      h = 19;
+      PAL_DrawNumber(be.e.wExp, 5, PAL_XY(x + 16, y + (i++) * h), kNumColorYellow, kNumAlignRight);
+      PAL_DrawNumber(be.e.wLevel, 3, PAL_XY(x + 6, y + (i++) * h), kNumColorYellow, kNumAlignRight);
+      PAL_DrawNumber(be.e.wHealth, 5, PAL_XY(x, y + (i++) * h), kNumColorYellow, kNumAlignRight);
+      //体力、体力最大值的分隔符“/”
+      PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_SLASH), gpScreen, PAL_XY(x + 29, y + (i - 1) * h));
+      PAL_DrawNumber(be.dwMaxHealth, 5, PAL_XY(x + 26, y + (i - 1) * h + 5), kNumColorBlue, kNumAlignRight);
+
+      PAL_DrawNumber(be.e.wPoisonResistance * 10, 4, PAL_XY(x, y + (i++) * h), kNumColorYellow, kNumAlignRight);
+      //        PAL_DrawNumber(PAL_New_GetEnemyPoisonResistance(iCurrent), 4, PAL_XY(x, y + (i++) * h), kNumColorYellow, kNumAlignRight);
+      //        PAL_DrawNumber(PAL_New_GetEnemyPhysicalResistance(iCurrent), 4, PAL_XY(x, y + (i++) * h), kNumColorYellow, kNumAlignRight);
+
+      PAL_DrawNumber(be.e.wCollectValue, 4, PAL_XY(x, y + (i++) * h), kNumColorYellow, kNumAlignRight);
+
+      PAL_DrawNumber(be.e.nStealItem, 4, PAL_XY(x, y + (i++) * h), kNumColorYellow, kNumAlignRight);
+      //PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_SLASH), gpScreen, PAL_XY(x + 27, y + (i - 1) * h));
+      WORD wStealItem = be.e.wStealItem != 0 ? be.e.wStealItem : CASH_LABEL;
+      PAL_DrawText(PAL_GetWord(wStealItem), PAL_XY(x + 30, y + (i - 1) * h - 5), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+
+      i++;
+      if (be.e.wAttackEquivItem != 0)
+      {
+         PAL_DrawText(PAL_GetWord(be.e.wAttackEquivItem), PAL_XY(x + 32, y + i * h - 5), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+      }
+      for (unsigned int elem = 0; elem < NUM_MAGIC_ELEMENTAL; elem++)
+      {
+         int _x = 9 + elem * 16 - 6;
+         PAL_DrawNumber(be.e.wElemResistance[elem]*10, 3, PAL_XY(_x, 6 + (i+2) * h + (elem % 2) * 8), kNumColorYellow, kNumAlignRight);
+         PAL_DrawNumber((10+(gpGlobals->g.lprgBattleField[gpGlobals->wNumBattleField].rgsMagicEffect[elem])), 2, PAL_XY(_x + 9 + 16*5 + elem, 185), kNumColorCyan, kNumAlignMid);
+         PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_SLASH), gpScreen, PAL_XY(_x + 6+16*5 +14 + elem, 185));
+      }
+
+      PAL_DrawText(PAL_GetWord(CASH_LABEL), PAL_XY(283, 180), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      PAL_DrawNumber(be.e.wCash, 6, PAL_XY(244, 185), kNumColorYellow, kNumAlignRight);
+      PAL_DrawText(PAL_GetWord(be.wObjectID), PAL_XY(120, 6), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+
+      PAL_DrawNumber(iCurrent + 1, 1, PAL_XY(110, 11), kNumColorYellow, kNumAlignRight);
+
+      //
+      // Draw all poisons
+      //将毒的名称写在状态栏里
+      y = 6;
+
+      for (i = 0; i < MAX_POISONS; i++)
+      {
+         w = g_Battle.rgEnemy[iCurrent].rgPoisons[i].wPoisonID;
+
+         if (w != 0)
+         {
+            PAL_DrawText(PAL_GetWord(w), PAL_XY(245, y),
+                         (BYTE)(gpGlobals->g.rgObject[w].poison.wColor + 10), TRUE, FALSE, FALSE);
+            y += 19;
+         }
+      }
+
+      //
+      // Update the screen
+      //
+      VIDEO_UpdateScreen(NULL);
+
+      //
+      // Wait for input
+      //
+      PAL_ClearKeyState();
+
+      while (TRUE)
+      {
+         UTIL_Delay(1);
+
+         if (g_InputState.dwKeyPress & kKeyMenu)
+         {
+            iCurrent = -1;
+            break;
+         }
+         else if (g_InputState.dwKeyPress & (kKeyLeft | kKeyUp))
+         {
+            do
+            {
+               iCurrent--;
+               if (iCurrent < 0)
+               {
+                  break;
+               }
+               be = g_Battle.rgEnemy[iCurrent];
+            } while (be.wObjectID == 0 && be.e.wHealth == 0);
+            break;
+         }
+         else if (g_InputState.dwKeyPress & (kKeyRight | kKeyDown | kKeySearch))
+         {
+            do
+            {
+               iCurrent++;
+               if (iCurrent >= MAX_ENEMIES_IN_TEAM)
+               {
+                  break;
+               }
+               be = g_Battle.rgEnemy[iCurrent];
+            } while (be.wObjectID == 0 && be.e.wHealth == 0);
+            break;
+         }
       }
    }
 }

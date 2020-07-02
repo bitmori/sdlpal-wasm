@@ -513,6 +513,46 @@ PAL_SystemMenu_OnItemChange(
    gpGlobals->iCurSystemMenuItem = wCurrentItem - 1;
 }
 
+
+static VOID
+PAL_ScriptSelectionMenu(VOID) {
+   LPBOX           lpBox;
+   WORD            wReturnValue;
+   const SDL_Rect  rect = {131, 100, 165, 50};
+
+   MENUITEM        rgMenuItem[5] = {
+      { 1,   BATTLESPEEDMENU_LABEL_1,       TRUE,   PAL_XY(145, 110) },
+      { 2,   BATTLESPEEDMENU_LABEL_2,       TRUE,   PAL_XY(170, 110) },
+      { 3,   BATTLESPEEDMENU_LABEL_3,       TRUE,   PAL_XY(195, 110) },
+      { 4,   BATTLESPEEDMENU_LABEL_4,       TRUE,   PAL_XY(220, 110) },
+      { 5,   BATTLESPEEDMENU_LABEL_5,       TRUE,   PAL_XY(245, 110) },
+   };
+
+   //
+   // Create the boxes
+   //
+   lpBox = PAL_CreateSingleLineBox(PAL_XY(131, 100), 8, TRUE);
+   VIDEO_UpdateScreen(&rect);
+
+   //
+   // Activate the menu
+   //
+   wReturnValue = PAL_ReadMenu(NULL, rgMenuItem, 5, 0, MENUITEM_COLOR);
+
+   //
+   // Delete the boxes
+   //
+   PAL_DeleteBox(lpBox);
+
+   VIDEO_UpdateScreen(&rect);
+
+   if (wReturnValue != MENUITEM_VALUE_CANCELLED)
+   {
+      PAL_ExecuteECMAScript(gpGlobals->duk, wReturnValue);
+   }
+}
+
+
 static BOOL
 PAL_SystemMenu(
    VOID
@@ -547,7 +587,8 @@ PAL_SystemMenu(
       { 2,      SYSMENU_LABEL_LOAD,          TRUE,     PAL_XY(53, 72 + 18) },
       { 3,      SYSMENU_LABEL_MUSIC,         TRUE,     PAL_XY(53, 72 + 36) },
       { 4,      SYSMENU_LABEL_SOUND,         TRUE,     PAL_XY(53, 72 + 54) },
-      { 5,      SYSMENU_LABEL_QUIT,          TRUE,     PAL_XY(53, 72 + 72) },
+      { 5,      SYSMENU_LABEL_SCRIPT,        TRUE,     PAL_XY(53, 72 + 72) },
+      { 6,      SYSMENU_LABEL_QUIT,          TRUE,     PAL_XY(53, 72 + 90) },
 #if !defined(PAL_CLASSIC)
       { 6,      SYSMENU_LABEL_BATTLEMODE,    TRUE,     PAL_XY(53, 72 + 90) },
 #endif
@@ -632,11 +673,10 @@ PAL_SystemMenu(
 
    case 5:
       //
-      // Quit
+      // Script Menu
       //
-      PAL_QuitGame();
+      PAL_ScriptSelectionMenu();
       break;
-
 #if !defined(PAL_CLASSIC)
    case 6:
       //
@@ -645,6 +685,12 @@ PAL_SystemMenu(
       PAL_BattleSpeedMenu();
       break;
 #endif
+   case 6:
+      //
+      // Quit
+      //
+      PAL_QuitGame();
+      break;
    }
 
    PAL_DeleteBox(lpMenuBox);
@@ -680,6 +726,11 @@ PAL_InGameMagicMenu(
    // Draw the player info boxes
    //
    y = 45;
+
+   if (gpGlobals->wMaxPartyMemberIndex >= 3)
+   {
+      y = 10;
+   }
 
    for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
    {
@@ -1058,6 +1109,7 @@ PAL_PlayerStatus(
 
 --*/
 {
+   // UTIL_demo_duktape();
    PAL_LARGE BYTE   bufBackground[320 * 200];
    PAL_LARGE BYTE   bufImage[16384];
    PAL_LARGE BYTE   bufImageBox[50 * 49];
@@ -1244,6 +1296,19 @@ PAL_PlayerStatus(
          }
       }
 
+      int j, kk=0;
+      for (j = kStatusPuppet; j < kStatusAll; j++)
+      {
+         WORD round = gpGlobals->rgPlayerStatus[iPlayerRole][j];
+         if (round > 0)
+         {
+               // draw this status
+               PAL_DrawText(PAL_GetWord(STATUS_LABEL_PUPPET+(j-kStatusPuppet)), PAL_XY(283, 8+kk*20), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+               PAL_DrawNumber(round, 2, PAL_XY(269, 12+kk*20), kNumColorBlue, kNumAlignRight);
+               kk++;
+         }
+      }
+
       //
       // Update the screen
       //
@@ -1317,26 +1382,27 @@ PAL_ItemUseMenu(
       //
       // Draw the box
       //
-      PAL_CreateBox(PAL_XY(110, 2), 7, 9, 0, FALSE);
+      PAL_CreateBox(PAL_XY(110, 2), 8, 9, 0, FALSE);
 
       //
       // Draw the stats of the selected player
       //
-      PAL_DrawText(PAL_GetWord(STATUS_LABEL_LEVEL), PAL_XY(200, 16),
+      int j = 0;
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_LEVEL), PAL_XY(200, 16+18*j++),
          ITEMUSEMENU_COLOR_STATLABEL, TRUE, FALSE, FALSE);
-      PAL_DrawText(PAL_GetWord(STATUS_LABEL_HP), PAL_XY(200, 34),
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_HP), PAL_XY(200, 16+18*j++),
          ITEMUSEMENU_COLOR_STATLABEL, TRUE, FALSE, FALSE);
-      PAL_DrawText(PAL_GetWord(STATUS_LABEL_MP), PAL_XY(200, 52),
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_MP), PAL_XY(200, 16+18*j++),
          ITEMUSEMENU_COLOR_STATLABEL, TRUE, FALSE, FALSE);
-      PAL_DrawText(PAL_GetWord(STATUS_LABEL_ATTACKPOWER), PAL_XY(200, 70),
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_ATTACKPOWER), PAL_XY(200, 16+18*j++),
          ITEMUSEMENU_COLOR_STATLABEL, TRUE, FALSE, FALSE);
-      PAL_DrawText(PAL_GetWord(STATUS_LABEL_MAGICPOWER), PAL_XY(200, 88),
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_MAGICPOWER), PAL_XY(200, 16+18*j++),
          ITEMUSEMENU_COLOR_STATLABEL, TRUE, FALSE, FALSE);
-      PAL_DrawText(PAL_GetWord(STATUS_LABEL_RESISTANCE), PAL_XY(200, 106),
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_RESISTANCE), PAL_XY(200, 16+18*j++),
          ITEMUSEMENU_COLOR_STATLABEL, TRUE, FALSE, FALSE);
-      PAL_DrawText(PAL_GetWord(STATUS_LABEL_DEXTERITY), PAL_XY(200, 124),
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_DEXTERITY), PAL_XY(200, 16+18*j++),
          ITEMUSEMENU_COLOR_STATLABEL, TRUE, FALSE, FALSE);
-      PAL_DrawText(PAL_GetWord(STATUS_LABEL_FLEERATE), PAL_XY(200, 142),
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_FLEERATE), PAL_XY(200, 16+18*j++),
          ITEMUSEMENU_COLOR_STATLABEL, TRUE, FALSE, FALSE);
 
       i = gpGlobals->rgParty[wSelectedPlayer].wPlayerRole;
@@ -1388,7 +1454,7 @@ PAL_ItemUseMenu(
       }
 
       PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_ITEMBOX), gpScreen,
-         PAL_XY(120, 80));
+         PAL_XY(120, 80 + 20));
 
       i = PAL_GetItemAmount(wItemToUse);
 
@@ -1400,14 +1466,14 @@ PAL_ItemUseMenu(
          if (PAL_MKFReadChunk(bufImage, 2048,
             gpGlobals->g.rgObject[wItemToUse].item.wBitmap, gpGlobals->f.fpBALL) > 0)
          {
-            PAL_RLEBlitToSurface(bufImage, gpScreen, PAL_XY(127, 88));
+            PAL_RLEBlitToSurface(bufImage, gpScreen, PAL_XY(127, 88 + 20));
          }
 
          //
          // Draw the amount and label of the item
          //
-         PAL_DrawText(PAL_GetWord(wItemToUse), PAL_XY(116, 143), STATUS_COLOR_EQUIPMENT, TRUE, FALSE, FALSE);
-         PAL_DrawNumber(i, 2, PAL_XY(170, 133), kNumColorCyan, kNumAlignRight);
+         PAL_DrawText(PAL_GetWord(wItemToUse), PAL_XY(116, 143 + 20), STATUS_COLOR_EQUIPMENT, TRUE, FALSE, FALSE);
+         PAL_DrawNumber(i, 2, PAL_XY(170, 133 + 20), kNumColorCyan, kNumAlignRight);
       }
 
       //

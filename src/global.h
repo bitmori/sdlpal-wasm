@@ -27,6 +27,7 @@
 #include "palcommon.h"
 #include "map.h"
 #include "ui.h"
+#include "es_bridge.h"
 
 //
 // SOME NOTES ON "AUTO SCRIPT" AND "TRIGGER SCRIPT":
@@ -494,6 +495,7 @@ typedef struct tagPOISONSTATUS
 
 typedef struct tagGLOBALVARS
 {
+   LPDUKCONTEXT     duk;
    FILES            f;
    GAMEDATA         g;
 
@@ -543,6 +545,7 @@ typedef struct tagGLOBALVARS
    INVENTORY        rgInventory[MAX_INVENTORY];  // inventory status
    LPOBJECTDESC     lpObjectDesc;
    DWORD            dwFrameNum;
+   BOOL             fLockTeamMember;
 } GLOBALVARS, *LPGLOBALVARS;
 
 PAL_C_LINKAGE_BEGIN

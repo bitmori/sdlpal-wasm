@@ -43,7 +43,6 @@ static wchar_t internal_wbuffer[PAL_GLOBAL_BUFFER_SIZE];
 #define INCLUDE_CODEPAGE_H
 #include "codepage.h"
 
-#ifndef PAL_CLASSIC
 # define ATB_WORD_COUNT             6
 static LPWSTR gc_rgszAdditionalWords[CP_MAX][ATB_WORD_COUNT] = {
    { L"\x6230\x9B25\x901F\x5EA6", L"\x4E00", L"\x4E8C", L"\x4E09", L"\x56DB", L"\x4E94" },
@@ -51,12 +50,17 @@ static LPWSTR gc_rgszAdditionalWords[CP_MAX][ATB_WORD_COUNT] = {
    //{ L"\x6226\x95D8\x901F\x5EA6", L"\x4E00", L"\x4E8C", L"\x4E09", L"\x56DB", L"\x4E94" },
 };
 static LPWSTR gc_rgszDefaultAdditionalWords[ATB_WORD_COUNT] = { NULL, L"\xFF11", L"\xFF12", L"\xFF13", L"\xFF14", L"\xFF15" };
-#endif
 
 #define SDLPAL_EXTRA_WORD_COUNT     1
 static LPWSTR gc_rgszSDLPalWords[CP_MAX][SDLPAL_EXTRA_WORD_COUNT] = {
 	{ L"\x8FD4\x56DE\x8A2D\x5B9A" },
 	{ L"\x8FD4\x56DE\x8BBE\x7F6E" },
+};
+
+#define EX_WORD_COUNT 12
+static LPWSTR gc_rgszExtraWords[CP_MAX][EX_WORD_COUNT] = {
+	{L"\x5496\x5561\x8173\x672c", L"\x60c5\x5831", L"\x6bd2\x6297", L"\x5996\x529b", L"\x5077\x7aca", L"\x653b\x64ca\x6548\x679c", L"\x98a8\x96f7\x6c34\x706b\x571f", L"\x5080\x5121", L"\x5929\x7f61", L"\x91d1\x525b", L"\x4ed9\x98a8", L"\x9189\x4ed9"},
+	{L"\x5496\x5561\x811a\x672c", L"\x60c5\x62a5", L"\x6bd2\x6297", L"\x5996\x529b", L"\x5077\x7a83", L"\x653b\x51fb\x6548\x679c", L"\x98ce\x96f7\x6c34\x706b\x571f", L"\x5080\x5121", L"\x5929\x7f61", L"\x91d1\x521a", L"\x4ed9\x98ce", L"\x9189\x4ed9"},
 };
 
 LPWSTR g_rcCredits[12];
@@ -634,6 +638,11 @@ PAL_ReadMessageFile(
 			g_TextLib.lpWordBuf[witem->index] = witem->value;
 			free(witem); witem = temp;
 		}
+		// for (int i = 0; i< EX_WORD_COUNT; i++) {
+		// 	if (!g_TextLib.lpWordBuf[i+PAL_EXTRA_STATUS_LABEL_START]) {
+		// 		g_TextLib.lpWordBuf[i+PAL_EXTRA_STATUS_LABEL_START] = gc_rgszExtraWords[i];
+		// 	}
+		// }
 #ifndef PAL_CLASSIC
 		for (i = 1; i < ATB_WORD_COUNT; i++)
 			if (!g_TextLib.lpWordBuf[i + SYSMENU_LABEL_BATTLEMODE])
@@ -871,10 +880,8 @@ PAL_InitText(
 	   g_TextLib.lpIndexBuf = NULL;
 
 	   memcpy(g_TextLib.lpWordBuf + SYSMENU_LABEL_LAUNCHSETTING, gc_rgszSDLPalWords[PAL_GetCodePage()], SDLPAL_EXTRA_WORD_COUNT * sizeof(LPCWSTR));
-
-#ifndef PAL_CLASSIC
+	   memcpy(g_TextLib.lpWordBuf + SYSMENU_LABEL_LAUNCHSETTING + 1, gc_rgszExtraWords[PAL_GetCodePage()], EX_WORD_COUNT * sizeof(LPCWSTR));
 	   memcpy(g_TextLib.lpWordBuf + SYSMENU_LABEL_BATTLEMODE, gc_rgszAdditionalWords[PAL_GetCodePage()], ATB_WORD_COUNT * sizeof(LPCWSTR));
-#endif
 
        g_TextLib.iFontFlavor = kFontFlavorAuto;
    }
