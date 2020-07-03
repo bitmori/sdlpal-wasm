@@ -927,6 +927,7 @@ PAL_InitGameData(
    gpGlobals->iCurInvMenuItem = 0;
    gpGlobals->fInBattle = FALSE;
    gpGlobals->fLockTeamMember = FALSE;
+   gpGlobals->nExpMultiplier = 1;
 
    memset(gpGlobals->rgPlayerStatus, 0, sizeof(gpGlobals->rgPlayerStatus));
 

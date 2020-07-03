@@ -546,6 +546,7 @@ typedef struct tagGLOBALVARS
    LPOBJECTDESC     lpObjectDesc;
    DWORD            dwFrameNum;
    BOOL             fLockTeamMember;
+   USHORT           nExpMultiplier;
 } GLOBALVARS, *LPGLOBALVARS;
 
 PAL_C_LINKAGE_BEGIN

@@ -1026,11 +1026,11 @@ PAL_InterpretInstruction(
          for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
          {
             w = gpGlobals->rgParty[i].wPlayerRole;
+#if 0 == ALLOW_REVIVE_AS_HEAL
             if (gpGlobals->g.PlayerRoles.rgwHP[w] == 0)
             {
                gpGlobals->g.PlayerRoles.rgwHP[w] =
                   gpGlobals->g.PlayerRoles.rgwMaxHP[w] * pScript->rgwOperand[1] / 10;
-
                PAL_CurePoisonByLevel(w, 3);
                for (x = 0; x < kStatusAll; x++)
                {
@@ -1039,6 +1039,22 @@ PAL_InterpretInstruction(
 
                g_fScriptSuccess = TRUE;
             }
+#else
+            WORD oldHP = gpGlobals->g.PlayerRoles.rgwHP[w];
+            gpGlobals->g.PlayerRoles.rgwHP[w] += 
+               gpGlobals->g.PlayerRoles.rgwMaxHP[w] * pScript->rgwOperand[1] / 10;
+            gpGlobals->g.PlayerRoles.rgwHP[w] = min(gpGlobals->g.PlayerRoles.rgwHP[w], gpGlobals->g.PlayerRoles.rgwMaxHP[w]);
+            if (oldHP == 0)
+            {
+               PAL_CurePoisonByLevel(w, 3);
+               for (x = 0; x < kStatusAll; x++)
+               {
+                  PAL_RemovePlayerStatus(w, x);
+               }
+
+               g_fScriptSuccess = TRUE;
+            }
+#endif
          }
       }
       else
@@ -1046,6 +1062,7 @@ PAL_InterpretInstruction(
          //
          // Apply to one player
          //
+#if 0 == ALLOW_REVIVE_AS_HEAL
          if (gpGlobals->g.PlayerRoles.rgwHP[wEventObjectID] == 0)
          {
             gpGlobals->g.PlayerRoles.rgwHP[wEventObjectID] =
@@ -1061,6 +1078,21 @@ PAL_InterpretInstruction(
          {
             g_fScriptSuccess = FALSE;
          }
+#else
+         WORD oldHP = gpGlobals->g.PlayerRoles.rgwHP[wEventObjectID];
+         gpGlobals->g.PlayerRoles.rgwHP[wEventObjectID] +=
+            gpGlobals->g.PlayerRoles.rgwMaxHP[wEventObjectID] * pScript->rgwOperand[1] / 10;
+         gpGlobals->g.PlayerRoles.rgwHP[wEventObjectID] = min(gpGlobals->g.PlayerRoles.rgwHP[wEventObjectID], gpGlobals->g.PlayerRoles.rgwMaxHP[wEventObjectID]);
+
+         if (oldHP == 0)
+         {
+            PAL_CurePoisonByLevel(wEventObjectID, 3);
+            for (x = 0; x < kStatusAll; x++)
+            {
+               PAL_RemovePlayerStatus(wEventObjectID, x);
+            }
+         }
+#endif
       }
       break;
 

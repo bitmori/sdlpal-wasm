@@ -5,6 +5,14 @@ static duk_ret_t native_print(duk_context *ctx) {
 	printf("%s\n", duk_to_string(ctx, 0));
   	return 0;  /* no return value (= undefined) */
 }
+
+static duk_ret_t set_exp_multiplier(LPDUKCONTEXT ctx) {
+   int em = duk_to_int(ctx, 0);
+   gpGlobals->nExpMultiplier = abs(em);
+   return 0;
+}
+
+
 static duk_ret_t give_cash(LPDUKCONTEXT ctx) {
    int money = 1000;
    int argc = duk_get_top(ctx);  /* #args */
@@ -120,5 +128,6 @@ VOID PAL_InitESHandlers(LPDUKCONTEXT ctx) {
    sdlpal_add_func(ctx, lock_team, "lock_team", 0);
    sdlpal_add_func(ctx, unlock_team, "unlock_team", 0);
    sdlpal_add_func(ctx, add_inventory, "add_item", 2);
+   sdlpal_add_func(ctx, set_exp_multiplier, "set_exp_multiplier", 1);
    duk_put_global_string(ctx, "Sdlpal");  // register 'Sdlpal' as a global object
 }

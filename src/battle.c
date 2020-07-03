@@ -29,7 +29,12 @@ g_rgPlayerPos[4][4][2] = {
    {{240, 170}},                         // one player
    {{200, 176}, {256, 152}},             // two players
    {{180, 180}, {234, 170}, {270, 146}},  // three players
-   {{160, 180}, {222, 172}, {260, 160}, {290, 128}},    // four players
+   //{{160, 180}, {222, 172}, {260, 160}, {290, 128}},    // four players
+   /*921, 711 -> (184, 142)
+   1197, 657 -> (239, 131)
+   1397, 563 -> (279, 112)
+   1465, 361 -> (293, 72)*/
+   {{184, 182}, {239, 171}, {279, 152}, {293, 112}},
 };
 
 VOID
@@ -705,7 +710,7 @@ PAL_BattleWon(
       }
 
       dwExp = gpGlobals->Exp.rgPrimaryExp[w].wExp;
-      dwExp += g_Battle.iExpGained;
+      dwExp += (g_Battle.iExpGained * gpGlobals->nExpMultiplier);
 
       if (gpGlobals->g.PlayerRoles.rgwLevel[w] > MAX_LEVELS)
       {
@@ -846,7 +851,7 @@ PAL_BattleWon(
       {
 #define CHECK_HIDDEN_EXP(expname, statname, label)          \
 {                                                           \
-   dwExp = g_Battle.iExpGained;                             \
+   dwExp = g_Battle.iExpGained * gpGlobals->nExpMultiplier; \
    dwExp *= gpGlobals->Exp.expname[w].wCount;               \
    dwExp /= iTotalCount;                                    \
    dwExp *= 2;                                              \
