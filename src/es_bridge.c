@@ -12,7 +12,6 @@ static duk_ret_t set_exp_multiplier(LPDUKCONTEXT ctx) {
    return 0;
 }
 
-
 static duk_ret_t give_cash(LPDUKCONTEXT ctx) {
    int money = 1000;
    int argc = duk_get_top(ctx);  /* #args */
@@ -77,6 +76,31 @@ static duk_ret_t make_fantastic4(LPDUKCONTEXT ctx)
    return 0;
 }
 
+static duk_ret_t rename_game_object(LPDUKCONTEXT ctx) {
+    // rename_game_object(object_id, [words]);
+    int argc = duk_get_top(ctx);
+    if (argc != 2) {
+        return -1;
+    }
+    if (!duk_is_array(ctx, 1)) {
+        return -1;
+    }
+    int w_id = duk_to_int(ctx, 0);
+    if (w_id >= g_TextLib.nWords) {
+        return -1;
+    }
+    size_t n = min(5, duk_get_length(ctx, 1));
+    if (n == 0) {
+        return -1;
+    }
+    for (int i = 0; i < n; i++) {
+        duk_get_prop_index(ctx, 1, i);
+        g_TextLib.lpWordBuf[w_id][i] = duk_to_int(ctx, -1);
+        duk_pop(ctx);
+    }
+    return 0;
+}
+
 static char * va(const char *format, ...) {
    static char string[256];
    va_list     argptr;
@@ -109,6 +133,12 @@ WORD PAL_ExecuteECMAScript(LPDUKCONTEXT ctx, WORD wScriptID) {
    return 0;
 }
 
+VOID PAL_ExecuteECMAScriptBeforeStart(LPDUKCONTEXT ctx) {
+    // Inject/modify item here
+    int wMagicId = 0;
+    // gpGlobals->g.lprgMagic[wMagicId].
+}
+
 static void sdlpal_add_func(duk_context *ctx, duk_c_function func, const char *name, int argc) {
 	duk_push_c_function(ctx, func, argc);
 	duk_push_string(ctx, "name");
@@ -129,5 +159,6 @@ VOID PAL_InitESHandlers(LPDUKCONTEXT ctx) {
    sdlpal_add_func(ctx, unlock_team, "unlock_team", 0);
    sdlpal_add_func(ctx, add_inventory, "add_item", 2);
    sdlpal_add_func(ctx, set_exp_multiplier, "set_exp_multiplier", 1);
+   sdlpal_add_func(ctx, rename_game_object, "rename_game_obj", 2);
    duk_put_global_string(ctx, "Sdlpal");  // register 'Sdlpal' as a global object
 }
