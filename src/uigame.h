@@ -94,6 +94,11 @@ PAL_EquipItemMenu(
 );
 
 VOID
+PAL_MergeItemMenu(
+   VOID
+);
+
+VOID
 PAL_QuitGame(
    VOID
 );

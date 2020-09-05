@@ -93,11 +93,134 @@ static duk_ret_t rename_game_object(LPDUKCONTEXT ctx) {
     if (n == 0) {
         return -1;
     }
+    WCHAR new_name[5] = {0x2020};
     for (int i = 0; i < n; i++) {
         duk_get_prop_index(ctx, 1, i);
-        g_TextLib.lpWordBuf[w_id][i] = duk_to_int(ctx, -1);
+        new_name[i] = duk_to_int(ctx, -1);
         duk_pop(ctx);
     }
+    memcpy(g_TextLib.lpWordBuf[w_id], new_name, sizeof(new_name));
+    return 0;
+}
+
+static duk_ret_t set_game_script(LPDUKCONTEXT ctx) {
+    return 0;
+}
+
+static duk_ret_t get_game_script(LPDUKCONTEXT ctx) {
+    return 0;
+}
+
+static duk_ret_t set_game_event_obj(LPDUKCONTEXT ctx) {
+    return 0;
+}
+static duk_ret_t get_game_event_obj(LPDUKCONTEXT ctx) {
+    return 0;
+}
+
+static duk_ret_t set_game_obj_item(LPDUKCONTEXT ctx) {
+    return 0;
+}
+static duk_ret_t get_game_obj_item(LPDUKCONTEXT ctx) {
+    return 0;
+}
+
+static duk_ret_t set_game_obj_enemy(LPDUKCONTEXT ctx) {
+    return 0;
+}
+static duk_ret_t get_game_obj_enemy(LPDUKCONTEXT ctx) {
+    return 0;
+}
+
+static duk_ret_t set_game_obj_poison(LPDUKCONTEXT ctx) {
+    return 0;
+}
+static duk_ret_t get_game_obj_poison(LPDUKCONTEXT ctx) {
+    return 0;
+}
+
+
+static duk_ret_t set_game_store(LPDUKCONTEXT ctx) {
+    return 0;
+}
+static duk_ret_t get_game_store(LPDUKCONTEXT ctx) {
+    return 0;
+}
+
+static duk_ret_t set_game_enemy(LPDUKCONTEXT ctx) {
+    return 0;
+}
+static duk_ret_t get_game_enemy(LPDUKCONTEXT ctx) {
+    return 0;
+}
+
+static duk_ret_t set_game_enemy_team(LPDUKCONTEXT ctx) {
+    return 0;
+}
+static duk_ret_t get_game_enemy_team(LPDUKCONTEXT ctx) {
+    return 0;
+}
+
+static duk_ret_t set_game_obj_magic(LPDUKCONTEXT ctx) {
+    return 0;
+}
+
+static duk_ret_t get_game_lvlup_magic(LPDUKCONTEXT ctx) {
+    int w = duk_to_int(ctx, 0);
+    if (w >= MAX_PLAYABLE_PLAYER_ROLES) {
+        return 0;
+    }
+    int j = 0;
+    while (j < gpGlobals->g.nLevelUpMagic)
+    {
+         if (gpGlobals->g.lprgLevelUpMagic[j].m[w].wMagic == 0)
+         {
+            j++;
+            continue;
+         }
+         int lv = gpGlobals->g.lprgLevelUpMagic[j].m[w].wLevel;
+         int id = gpGlobals->g.lprgLevelUpMagic[j].m[w].wMagic;
+         printf("%d@Lv%d #%d = %ls\n", w, lv, id, PAL_GetWord(id));
+         j++;
+    }
+}
+
+static duk_ret_t get_game_obj_magic(LPDUKCONTEXT ctx) {
+    int obj_m_id = duk_to_int(ctx, 0);
+    int magic_id = gpGlobals->g.rgObject[obj_m_id].magic.wMagicNumber;
+    int script_on_use = gpGlobals->g.rgObject[obj_m_id].magic.wScriptOnUse;
+    int script_on_ok = gpGlobals->g.rgObject[obj_m_id].magic.wScriptOnSuccess;
+    int flags = gpGlobals->g.rgObject[obj_m_id].magic.wFlags;
+    printf("#%d = %ls [MagicID: %d, OnUse: %d, OnOK: %d, Flags: %x]\n", obj_m_id, PAL_GetWord(obj_m_id), 
+            magic_id, script_on_use, script_on_ok, flags);
+    LPMAGIC magic = &(gpGlobals->g.lprgMagic[magic_id]);
+    printf("Efx = %d, Type = %d, (x, y) = (%d, %d), SummonEfx = %d, Speed = %d, EfxTimes = %d, (S,W) = (%d, %d), Cost = %d, BaseDmg = %d, Elem = %d, Sound = %d\n", 
+    magic->wEffect, magic->wType, magic->wXOffset, magic->wYOffset, magic->wSummonEffect, magic->wSpeed,
+    magic->wEffectTimes, magic->wShake, magic->wWave, magic->wCostMP, magic->wBaseDamage, magic->wElemental, magic->wSound);
+    return 0;
+}
+
+static duk_ret_t add_game_magic(LPDUKCONTEXT ctx) {
+    return 0;
+}
+
+static duk_ret_t set_game_magic(LPDUKCONTEXT ctx) {
+    return 0;
+}
+static duk_ret_t get_game_magic(LPDUKCONTEXT ctx) {
+    int m_id = duk_to_int(ctx, 0);
+    if (m_id >= gpGlobals->g.nMagic) {
+        return 0;
+    }
+    LPMAGIC magic = &(gpGlobals->g.lprgMagic[m_id]);
+    // printf("Efx = %d, Type = %d, (x, y) = (%d, %d), SummonEfx = %d, Speed = %d, ", magic->wBaseDamage, magic->wCostMP, magic->);
+    return 0;
+}
+
+static duk_ret_t set_game_player_data(LPDUKCONTEXT ctx) {
+    return 0;
+}
+static duk_ret_t get_game_player_data(LPDUKCONTEXT ctx) {
     return 0;
 }
 
@@ -160,5 +283,7 @@ VOID PAL_InitESHandlers(LPDUKCONTEXT ctx) {
    sdlpal_add_func(ctx, add_inventory, "add_item", 2);
    sdlpal_add_func(ctx, set_exp_multiplier, "set_exp_multiplier", 1);
    sdlpal_add_func(ctx, rename_game_object, "rename_game_obj", 2);
+   sdlpal_add_func(ctx, get_game_obj_magic, "get_obj", 1);
+   sdlpal_add_func(ctx, get_game_lvlup_magic, "get_lvlup_magic", 1);
    duk_put_global_string(ctx, "Sdlpal");  // register 'Sdlpal' as a global object
 }

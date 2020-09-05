@@ -21,5 +21,11 @@
 		"wii": true,
 		"winrt": true,
 		"*.yml": true
-	}}
+	},
+	"files.associations": {
+		"algorithm": "c",
+		"chrono": "c",
+		"limits": "c"
+	}
+}
 }

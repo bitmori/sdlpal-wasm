@@ -366,6 +366,14 @@ PAL_GameEquipItem(
 }
 
 VOID
+PAL_GameMergeItem(
+   VOID
+)
+{
+   PAL_MergeItemMenu();
+}
+
+VOID
 PAL_Search(
    VOID
 )
@@ -547,6 +555,13 @@ PAL_StartFrame(
       // Show the equipment menu
       //
       PAL_GameEquipItem();
+   }
+   else if (g_InputState.dwKeyPress & kKeyDev)
+   {
+      //
+      // Show dev mystery
+      //
+      PAL_GameMergeItem();
    }
    else if (g_InputState.dwKeyPress & kKeyForce)
    {

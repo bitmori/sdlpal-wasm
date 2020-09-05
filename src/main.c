@@ -22,6 +22,7 @@
 
 #include "main.h"
 #include <setjmp.h>
+#include <locale.h>
 
 #if defined(PAL_HAS_GIT_REVISION)
 # undef PAL_GIT_REVISION
@@ -468,6 +469,7 @@ main(
 
 --*/
 {
+   setlocale(LC_ALL, "");
 #if !defined( __EMSCRIPTEN__ ) && !defined(__WINRT__)
    memset(gExecutablePath,0,PAL_MAX_PATH);
    strncpy(gExecutablePath, argv[0], PAL_MAX_PATH);

@@ -1987,6 +1987,7 @@ PAL_InterpretInstruction(
       //
       // Set the player's sprite
       //
+      printf("0x0065: %d, %d, %d", pScript->rgwOperand[0], pScript->rgwOperand[1], pScript->rgwOperand[2]);
       gpGlobals->g.PlayerRoles.rgwSpriteNum[pScript->rgwOperand[0]] = pScript->rgwOperand[1];
       if (!gpGlobals->fInBattle && pScript->rgwOperand[2])
       {

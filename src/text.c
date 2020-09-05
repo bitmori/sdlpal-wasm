@@ -738,6 +738,7 @@ PAL_InitText(
 	   // Each word has 10 bytes
 	   //
 	   g_TextLib.nWords = (i + (gConfig.dwWordLength - 1)) / gConfig.dwWordLength;
+	   gpGlobals->nValidObjectCount = g_TextLib.nWords;
 	   if (g_TextLib.nWords < MINIMAL_WORD_COUNT) g_TextLib.nWords = MINIMAL_WORD_COUNT;
 
 	   //

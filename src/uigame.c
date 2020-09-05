@@ -2077,6 +2077,210 @@ PAL_EquipItemMenu(
    }
 }
 
+
+VOID
+PAL_MergeItemMenu(
+   VOID
+)
+{
+#if 0
+   PAL_LARGE BYTE   bufBackground[320 * 200];
+   PAL_LARGE BYTE   bufImageBox[72 * 72];
+   PAL_LARGE BYTE   bufImage[2048];
+   WORD             w;
+   int              iCurrentPlayer, i;
+   BYTE             bColor, bSelectedColor;
+   DWORD            dwColorChangeTime;
+
+   PAL_MKFDecompressChunk(bufBackground, 320 * 200, MERGEMENU_BACKGROUND_FBPNUM,
+      gpGlobals->f.fpFBP);
+
+   iCurrentPlayer = 0;
+   bSelectedColor = MENUITEM_COLOR_SELECTED_FIRST;
+   dwColorChangeTime = SDL_GetTicks() + (600 / MENUITEM_COLOR_SELECTED_TOTALNUM);
+   while (TRUE)
+   {
+      wItem = gpGlobals->wLastUnequippedItem;
+
+      //
+      // Draw the background
+      //
+      PAL_FBPBlitToSurface(bufBackground, gpScreen);
+
+      //
+      // Draw the item picture
+      //
+      if (PAL_MKFReadChunk(bufImage, 2048,
+         gpGlobals->g.rgObject[wItem].item.wBitmap, gpGlobals->f.fpBALL) > 0)
+      {
+         PAL_RLEBlitToSurface(bufImage, gpScreen, PAL_XY_OFFSET(gConfig.ScreenLayout.EquipImageBox, 8, 8));
+      }
+
+      //
+      // Draw the current equipment of the selected player
+      //
+      w = gpGlobals->rgParty[iCurrentPlayer].wPlayerRole;
+      for (i = 0; i < MAX_PLAYER_EQUIPMENTS; i++)
+      {
+         if (gpGlobals->g.PlayerRoles.rgwEquipment[i][w] != 0)
+         {
+            PAL_DrawText(PAL_GetWord(gpGlobals->g.PlayerRoles.rgwEquipment[i][w]),
+				gConfig.ScreenLayout.EquipNames[i], MENUITEM_COLOR, TRUE, FALSE, FALSE);
+         }
+      }
+
+      //
+      // Draw the stats of the currently selected player
+      //
+      PAL_DrawNumber(PAL_GetPlayerAttackStrength(w), 4, gConfig.ScreenLayout.EquipStatusValues[0], kNumColorCyan, kNumAlignRight);
+      PAL_DrawNumber(PAL_GetPlayerMagicStrength(w), 4, gConfig.ScreenLayout.EquipStatusValues[1], kNumColorCyan, kNumAlignRight);
+      PAL_DrawNumber(PAL_GetPlayerDefense(w), 4, gConfig.ScreenLayout.EquipStatusValues[2], kNumColorCyan, kNumAlignRight);
+      PAL_DrawNumber(PAL_GetPlayerDexterity(w), 4, gConfig.ScreenLayout.EquipStatusValues[3], kNumColorCyan, kNumAlignRight);
+      PAL_DrawNumber(PAL_GetPlayerFleeRate(w), 4, gConfig.ScreenLayout.EquipStatusValues[4], kNumColorCyan, kNumAlignRight);
+
+      //
+      // Draw a box for player selection
+      //
+      PAL_CreateBox(gConfig.ScreenLayout.EquipRoleListBox, gpGlobals->wMaxPartyMemberIndex, PAL_WordMaxWidth(36, 4) - 1, 0, FALSE);
+
+      //
+      // Draw the label of players
+      //
+      for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+      {
+         w = gpGlobals->rgParty[i].wPlayerRole;
+
+         if (iCurrentPlayer == i)
+         {
+            if (gpGlobals->g.rgObject[wItem].item.wFlags & (kItemFlagEquipableByPlayerRole_First << w))
+            {
+               bColor = bSelectedColor;
+            }
+            else
+            {
+               bColor = MENUITEM_COLOR_SELECTED_INACTIVE;
+            }
+         }
+         else
+         {
+            if (gpGlobals->g.rgObject[wItem].item.wFlags & (kItemFlagEquipableByPlayerRole_First << w))
+            {
+               bColor = MENUITEM_COLOR;
+            }
+            else
+            {
+               bColor = MENUITEM_COLOR_INACTIVE;
+            }
+         }
+
+         PAL_DrawText(PAL_GetWord(gpGlobals->g.PlayerRoles.rgwName[w]),
+            PAL_XY_OFFSET(gConfig.ScreenLayout.EquipRoleListBox, 13, 13 + 18 * i), bColor, TRUE, FALSE, FALSE);
+      }
+
+      //
+      // Draw the text label and amount of the item
+      //
+      if (wItem != 0)
+      {
+         PAL_DrawText(PAL_GetWord(wItem), gConfig.ScreenLayout.EquipItemName, MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+         PAL_DrawNumber(PAL_GetItemAmount(wItem), 2, gConfig.ScreenLayout.EquipItemAmount, kNumColorCyan, kNumAlignRight);
+      }
+
+      //
+      // Update the screen
+      //
+      VIDEO_UpdateScreen(NULL);
+
+      //
+      // Accept input
+      //
+      PAL_ClearKeyState();
+
+      while (TRUE)
+      {
+         PAL_ProcessEvent();
+
+         //
+         // See if we should change the highlight color
+         //
+         if (SDL_TICKS_PASSED(SDL_GetTicks(), dwColorChangeTime))
+         {
+            if ((WORD)bSelectedColor + 1 >=
+               (WORD)MENUITEM_COLOR_SELECTED_FIRST + MENUITEM_COLOR_SELECTED_TOTALNUM)
+            {
+               bSelectedColor = MENUITEM_COLOR_SELECTED_FIRST;
+            }
+            else
+            {
+               bSelectedColor++;
+            }
+
+            dwColorChangeTime = SDL_GetTicks() + (600 / MENUITEM_COLOR_SELECTED_TOTALNUM);
+
+            //
+            // Redraw the selected item if needed.
+            //
+            w = gpGlobals->rgParty[iCurrentPlayer].wPlayerRole;
+
+            if (gpGlobals->g.rgObject[wItem].item.wFlags & (kItemFlagEquipableByPlayerRole_First << w))
+            {
+               PAL_DrawText(PAL_GetWord(gpGlobals->g.PlayerRoles.rgwName[w]),
+                  PAL_XY_OFFSET(gConfig.ScreenLayout.EquipRoleListBox, 13, 13 + 18 * iCurrentPlayer), bSelectedColor, TRUE, TRUE, FALSE);
+            }
+         }
+
+         if (g_InputState.dwKeyPress != 0)
+         {
+            break;
+         }
+
+         SDL_Delay(1);
+      }
+
+      if (wItem == 0)
+      {
+         return;
+      }
+
+      if (g_InputState.dwKeyPress & (kKeyUp | kKeyLeft))
+      {
+         iCurrentPlayer--;
+         if (iCurrentPlayer < 0)
+         {
+            iCurrentPlayer = 0;
+         }
+      }
+      else if (g_InputState.dwKeyPress & (kKeyDown | kKeyRight))
+      {
+         iCurrentPlayer++;
+         if (iCurrentPlayer > gpGlobals->wMaxPartyMemberIndex)
+         {
+            iCurrentPlayer = gpGlobals->wMaxPartyMemberIndex;
+         }
+      }
+      else if (g_InputState.dwKeyPress & kKeyMenu)
+      {
+         return;
+      }
+      else if (g_InputState.dwKeyPress & kKeySearch)
+      {
+         w = gpGlobals->rgParty[iCurrentPlayer].wPlayerRole;
+
+         if (gpGlobals->g.rgObject[wItem].item.wFlags & (kItemFlagEquipableByPlayerRole_First << w))
+         {
+            //
+            // Run the equip script
+            //
+            gpGlobals->g.rgObject[wItem].item.wScriptOnEquip =
+               PAL_RunTriggerScript(gpGlobals->g.rgObject[wItem].item.wScriptOnEquip,
+                  gpGlobals->rgParty[iCurrentPlayer].wPlayerRole);
+         }
+      }
+   }
+#endif
+}
+
+
 VOID
 PAL_QuitGame(
    VOID

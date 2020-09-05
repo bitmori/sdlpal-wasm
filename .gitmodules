@@ -7,6 +7,3 @@
 [submodule "3rd/mingw-std-threads"]
 	path = 3rd/mingw-std-threads
 	url = https://github.com/sdlpal/mingw-std-threads.git
-[submodule "3rd/micropython"]
-	path = 3rd/micropython
-	url = https://github.com/micropython/micropython
