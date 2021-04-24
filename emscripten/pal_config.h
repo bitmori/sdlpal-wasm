@@ -32,8 +32,8 @@
 # define PAL_PREFIX            "/data/"
 # define PAL_SAVE_PREFIX       "/data/"
 # define PAL_HAS_TOUCH         0
-# define PAL_DEFAULT_WINDOW_WIDTH   640
-# define PAL_DEFAULT_WINDOW_HEIGHT  400
+# define PAL_DEFAULT_WINDOW_WIDTH   960
+# define PAL_DEFAULT_WINDOW_HEIGHT  600
 # define PAL_DEFAULT_TEXTURE_WIDTH   640
 # define PAL_DEFAULT_TEXTURE_HEIGHT  400
 
