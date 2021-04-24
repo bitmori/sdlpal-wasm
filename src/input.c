@@ -90,6 +90,7 @@ static const int g_KeyMap[][2] = {
    { SDLK_f,         kKeyForce },
    { SDLK_s,         kKeyStatus },
    { SDLK_l,         kKeyDev },
+   { SDLK_BACKQUOTE, kKeyMenu },
 };
 
 static VOID

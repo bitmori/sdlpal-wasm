@@ -6,11 +6,6 @@ static duk_ret_t native_print(duk_context *ctx) {
   	return 0;  /* no return value (= undefined) */
 }
 
-static duk_ret_t set_exp_multiplier(LPDUKCONTEXT ctx) {
-   int em = duk_to_int(ctx, 0);
-   gpGlobals->nExpMultiplier = abs(em);
-   return 0;
-}
 
 static duk_ret_t give_cash(LPDUKCONTEXT ctx) {
    int money = 1000;
@@ -19,16 +14,6 @@ static duk_ret_t give_cash(LPDUKCONTEXT ctx) {
        money = duk_to_int(ctx, 0);
    }
    gpGlobals->dwCash += money;
-   return 0;
-}
-
-static duk_ret_t lock_team(LPDUKCONTEXT ctx) {
-   gpGlobals->fLockTeamMember = TRUE;
-   return 0;
-}
-
-static duk_ret_t unlock_team(LPDUKCONTEXT ctx) {
-   gpGlobals->fLockTeamMember = FALSE;
    return 0;
 }
 
@@ -43,37 +28,20 @@ static duk_ret_t add_inventory(LPDUKCONTEXT ctx) {
    return 0;
 }
 
-static duk_ret_t make_fantastic4(LPDUKCONTEXT ctx)
-{
-   //
-   // Set the player party
-   //
-   gpGlobals->wMaxPartyMemberIndex = 3;
-   gpGlobals->rgParty[0].wPlayerRole = 0; // => XY
-   gpGlobals->rgParty[1].wPlayerRole = 1; // => 02
-   gpGlobals->rgParty[2].wPlayerRole = 4; // => ANU
-   gpGlobals->rgParty[3].wPlayerRole = 2; // => Miss
-   g_Battle.rgPlayer[0].action.ActionType = kBattleActionAttack;
-   g_Battle.rgPlayer[1].action.ActionType = kBattleActionAttack;
-   g_Battle.rgPlayer[2].action.ActionType = kBattleActionAttack;
-   g_Battle.rgPlayer[3].action.ActionType = kBattleActionAttack;
-
-   if (gpGlobals->wMaxPartyMemberIndex == 0)
+static duk_ret_t show_special_shop(LPDUKCONTEXT ctx) {
+   int argc = duk_get_top(ctx);
+   int items[MAX_STORE_ITEM] = { 0 };
+   for (int i = 0; i < MAX_STORE_ITEM; i++)
    {
-      // HACK for Dream 2.11
-      gpGlobals->rgParty[0].wPlayerRole = 0;
-      gpGlobals->wMaxPartyMemberIndex = 1;
+       items[i] = duk_to_int(ctx, i);
    }
-
-   //
-   // Reload the player sprites
-   //
-   PAL_SetLoadFlags(kLoadPlayerSprite);
-   PAL_LoadResources();
-
-   memset(gpGlobals->rgPoisonStatus, 0, sizeof(gpGlobals->rgPoisonStatus));
-   PAL_UpdateEquipments();
+   PAL_SpecialBuyMenu(items);
    return 0;
+}
+
+static duk_ret_t show_team_menu(LPDUKCONTEXT ctx) {
+    PAL_TeamFormationMenu();
+    return 0;
 }
 
 static duk_ret_t rename_game_object(LPDUKCONTEXT ctx) {
@@ -277,11 +245,9 @@ VOID PAL_InitESHandlers(LPDUKCONTEXT ctx) {
    
    duk_push_object(ctx); // add an empty object as Sdlpal
    sdlpal_add_func(ctx, give_cash, "give_cash", 1);
-   sdlpal_add_func(ctx, make_fantastic4, "make_team", 0);
-   sdlpal_add_func(ctx, lock_team, "lock_team", 0);
-   sdlpal_add_func(ctx, unlock_team, "unlock_team", 0);
    sdlpal_add_func(ctx, add_inventory, "add_item", 2);
-   sdlpal_add_func(ctx, set_exp_multiplier, "set_exp_multiplier", 1);
+   sdlpal_add_func(ctx, show_special_shop, "sp_shop", 9);
+   sdlpal_add_func(ctx, show_team_menu, "team_menu", 0);
    sdlpal_add_func(ctx, rename_game_object, "rename_game_obj", 2);
    sdlpal_add_func(ctx, get_game_obj_magic, "get_obj", 1);
    sdlpal_add_func(ctx, get_game_lvlup_magic, "get_lvlup_magic", 1);

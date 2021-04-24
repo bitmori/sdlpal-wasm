@@ -103,6 +103,16 @@ PAL_QuitGame(
    VOID
 );
 
+VOID
+PAL_SpecialBuyMenu(
+   INT items[MAX_STORE_ITEM]
+);
+
+VOID
+PAL_TeamFormationMenu(
+   VOID
+);
+
 PAL_C_LINKAGE_END
 
 #endif

@@ -2335,3 +2335,65 @@ PAL_PlayerLevelUp(
    gpGlobals->Exp.rgPrimaryExp[wPlayerRole].wLevel =
       gpGlobals->g.PlayerRoles.rgwLevel[wPlayerRole];
 }
+
+VOID
+PAL_TeamAppendMember(
+   WORD wPlayerRole
+)
+{
+   //
+   // Set the player party
+   //
+   if (gpGlobals->wMaxPartyMemberIndex >= MAX_PLAYERS_IN_PARTY - 1) {
+      return;
+   }
+   gpGlobals->wMaxPartyMemberIndex++;
+   gpGlobals->rgParty[gpGlobals->wMaxPartyMemberIndex].wPlayerRole = wPlayerRole;
+   g_Battle.rgPlayer[gpGlobals->wMaxPartyMemberIndex].action.ActionType = kBattleActionAttack;
+
+   // if (gpGlobals->wMaxPartyMemberIndex == 0)
+   // {
+   //    // HACK for Dream 2.11
+   //    gpGlobals->rgParty[0].wPlayerRole = 0;
+   //    gpGlobals->wMaxPartyMemberIndex = 1;
+   // }
+
+   //
+   // Reload the player sprites
+   //
+   PAL_SetLoadFlags(kLoadPlayerSprite);
+   PAL_LoadResources();
+
+   memset(gpGlobals->rgPoisonStatus, 0, sizeof(gpGlobals->rgPoisonStatus));
+   PAL_UpdateEquipments();
+}
+
+VOID
+PAL_TeamRemoveMember(
+   INT index,
+   WORD wPlayerRole
+)
+{
+   if (gpGlobals->rgParty[index].wPlayerRole != wPlayerRole) {
+      return;
+   }
+   gpGlobals->rgParty[index].wPlayerRole = gpGlobals->rgParty[gpGlobals->wMaxPartyMemberIndex].wPlayerRole;
+   gpGlobals->wMaxPartyMemberIndex--;
+
+   if (gpGlobals->wMaxPartyMemberIndex == 0)
+   {
+      // HACK for Dream 2.11
+      gpGlobals->rgParty[0].wPlayerRole = 0;
+      gpGlobals->wMaxPartyMemberIndex = 1;
+   }
+
+   //
+   // Reload the player sprites
+   //
+   PAL_SetLoadFlags(kLoadPlayerSprite);
+   PAL_LoadResources();
+
+   memset(gpGlobals->rgPoisonStatus, 0, sizeof(gpGlobals->rgPoisonStatus));
+   PAL_UpdateEquipments();
+}
+

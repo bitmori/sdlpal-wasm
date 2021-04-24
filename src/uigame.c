@@ -1732,6 +1732,271 @@ PAL_BuyMenu(
    }
 }
 
+VOID
+PAL_SpecialBuyMenu(
+   INT rgwItems[MAX_STORE_ITEM]
+)
+{
+   MENUITEM        rgMenuItem[MAX_STORE_ITEM];
+   int             i, y;
+   WORD            w;
+   SDL_Rect        rect = {125, 8, 190, 190};
+
+   //
+   // create the menu items
+   //
+   y = 22;
+
+   for (i = 0; i < MAX_STORE_ITEM; i++)
+   {
+      if (rgwItems[i] == 0)
+      {
+         break;
+      }
+      // UTIL_LogOutput(LOGLEVEL_DEBUG, "[SP_SHOP] %.4x\n", rgwItems[i]);
+
+      rgMenuItem[i].wValue = rgwItems[i];
+      rgMenuItem[i].wNumWord = rgwItems[i];
+      rgMenuItem[i].fEnabled = TRUE;
+      rgMenuItem[i].pos = PAL_XY(150, y);
+
+      y += 18;
+   }
+
+   //
+   // Draw the box
+   //
+   PAL_CreateBox(PAL_XY(125, 8), 8, 8, 1, FALSE);
+
+   //
+   // Draw the number of prices
+   //
+   for (y = 0; y < i; y++)
+   {
+      w = gpGlobals->g.rgObject[rgMenuItem[y].wValue].item.wPrice;
+      PAL_DrawNumber(w, 6, PAL_XY(235, 25 + y * 18), kNumColorCyan, kNumAlignRight);
+   }
+
+   w = 0;
+   __buymenu_firsttime_render = TRUE;
+
+   while (TRUE)
+   {
+      w = PAL_ReadMenu(PAL_BuyMenu_OnItemChange, rgMenuItem, i, w, MENUITEM_COLOR);
+
+      if (w == MENUITEM_VALUE_CANCELLED)
+      {
+         break;
+      }
+
+      if (PAL_ConfirmMenu())
+      {
+         //
+         // Player get an item
+         //
+         PAL_AddItemToInventory(w, 1);
+      }
+
+      //
+      // Place the cursor to the current item on next loop
+      //
+      for (y = 0; y < i; y++)
+      {
+         if (w == rgMenuItem[y].wValue)
+         {
+            w = y;
+            break;
+         }
+      }
+   }
+}
+
+
+static VOID
+PAL_TeamFormationMenu_OnItemChange(
+   WORD           wCurrentItem
+)
+{
+   const SDL_Rect      rect = {20, 8, 300, 175};
+   int                 i, n;
+   PAL_LARGE BYTE      bufImage[2048];
+
+   // if( __buymenu_firsttime_render )
+   //    PAL_RLEBlitToSurfaceWithShadow(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_ITEMBOX), gpScreen, PAL_XY(35+6, 8+6), TRUE);
+   //
+   // Draw the picture of current selected item
+   //
+   PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_ITEMBOX), gpScreen,
+      PAL_XY(35, 8));
+
+
+   // Draw char avatar
+   if (wCurrentItem < MAX_PLAYABLE_PLAYER_ROLES) {
+      PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_PLAYERFACE_FIRST + wCurrentItem),
+            gpScreen, PAL_XY(50, 20));
+
+      //
+      // See if the character is in our team
+      //
+      n = 0;
+      for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+      {
+         if (gpGlobals->rgParty[i].wPlayerRole == wCurrentItem) {
+            n = 1;
+            break;
+         }
+      }
+   } else if (wCurrentItem == 99 ) {
+      // is current team locked?
+      n = gpGlobals->fLockTeamMember;
+   } else {
+      n = gpGlobals->nExpMultiplier;
+   }
+
+   if( __buymenu_firsttime_render )
+      PAL_CreateSingleLineBoxWithShadow(PAL_XY(20, 105), 5, FALSE, 6);
+   else
+   //
+   // Draw the amount of this item in the inventory
+   //
+   PAL_CreateSingleLineBoxWithShadow(PAL_XY(20, 105), 5, FALSE, 0);
+   PAL_DrawText(PAL_GetWord(BUYMENU_LABEL_CURRENT), PAL_XY(30, 115), 0, FALSE, FALSE, FALSE);
+   PAL_DrawNumber(n, 6, PAL_XY(69, 119), kNumColorYellow, kNumAlignRight);
+
+   if( __buymenu_firsttime_render )
+      PAL_CreateSingleLineBoxWithShadow(PAL_XY(20, 145), 5, FALSE, 6);
+   else
+   //
+   // Draw the cash amount
+   //
+   PAL_CreateSingleLineBoxWithShadow(PAL_XY(20, 145), 5, FALSE, 0);
+   PAL_DrawText(PAL_GetWord(CASH_LABEL), PAL_XY(30, 155), 0, FALSE, FALSE, FALSE);
+   PAL_DrawNumber(gpGlobals->dwCash, 6, PAL_XY(69, 159), kNumColorYellow, kNumAlignRight);
+
+   VIDEO_UpdateScreen(&rect);
+   
+   __buymenu_firsttime_render = FALSE;
+}
+
+VOID
+PAL_TeamFormationMenu(
+   VOID
+)
+{
+   MENUITEM        rgMenuItem[MAX_STORE_ITEM];
+   int             i, y;
+   WORD            w;
+   SDL_Rect        rect = {125, 8, 190, 190};
+
+   //
+   // create the menu items
+   //
+   y = 22;
+
+   for (i = 0; i < MAX_PLAYABLE_PLAYER_ROLES; i++)
+   {
+      // UTIL_LogOutput(LOGLEVEL_DEBUG, "[SP_SHOP] %.4x\n", rgwItems[i]);
+
+      rgMenuItem[i].wValue = i;
+      rgMenuItem[i].wNumWord = gpGlobals->g.PlayerRoles.rgwName[i];
+      rgMenuItem[i].fEnabled = TRUE;
+      rgMenuItem[i].pos = PAL_XY(150, y);
+
+      y += 18;
+   }
+   // Team lock
+   rgMenuItem[i].wValue = 99;
+   rgMenuItem[i].wNumWord = TEAMMENU_LABEL_LOCK;
+   rgMenuItem[i].fEnabled = TRUE;
+   rgMenuItem[i].pos = PAL_XY(150, y);
+   i++;
+   y+=18;
+   // Exp multiplier reset
+   rgMenuItem[i].wValue = 101;
+   rgMenuItem[i].wNumWord = STATUS_LABEL_EXP;
+   rgMenuItem[i].fEnabled = TRUE;
+   rgMenuItem[i].pos = PAL_XY(150, y);
+   i++;
+   y+=18;
+   // Exp multiplier * 2
+   rgMenuItem[i].wValue = 102;
+   rgMenuItem[i].wNumWord = STATUS_LABEL_EXP;
+   rgMenuItem[i].fEnabled = TRUE;
+   rgMenuItem[i].pos = PAL_XY(150, y);
+   i++;
+   y+=18;
+   //
+   // Draw the box
+   //
+   PAL_CreateBox(PAL_XY(125, 8), 8, 8, 1, FALSE);
+
+   //
+   // Draw the number of prices
+   //
+   for (y = 0; y < MAX_PLAYABLE_PLAYER_ROLES; y++)
+   {
+      w = gpGlobals->g.PlayerRoles.rgwLevel[rgMenuItem[y].wValue];
+      PAL_DrawNumber(w, 6, PAL_XY(235, 25 + y * 18), kNumColorCyan, kNumAlignRight);
+   }
+   y++;
+   PAL_DrawNumber(1, 6, PAL_XY(235, 25 + y * 18), kNumColorBlue, kNumAlignRight);
+   y++;
+   PAL_DrawNumber(2, 6, PAL_XY(235, 25 + y * 18), kNumColorYellow, kNumAlignRight);
+   y++;
+
+
+   w = 0;
+   __buymenu_firsttime_render = TRUE;
+
+   while (TRUE)
+   {
+      w = PAL_ReadMenu(PAL_TeamFormationMenu_OnItemChange, rgMenuItem, i, w, MENUITEM_COLOR);
+
+      if (w == MENUITEM_VALUE_CANCELLED)
+      {
+         break;
+      }
+
+      if (PAL_ConfirmMenu())
+      {
+         if (w == 99) {
+            gpGlobals->fLockTeamMember = !gpGlobals->fLockTeamMember;
+         } else if (w == 101) {
+            gpGlobals->nExpMultiplier = 1;
+         } else if (w == 102) {
+            gpGlobals->nExpMultiplier *= 2;
+         } else {
+            int index = -1;
+            for (int j = 0; j <= gpGlobals->wMaxPartyMemberIndex; j++)
+            {
+               if (gpGlobals->rgParty[j].wPlayerRole == w)
+               {
+                  index = j;
+                  break;
+               }
+            }
+            if (index == -1) {
+               PAL_TeamAppendMember(w);
+            } else {
+               PAL_TeamRemoveMember(index, w);
+            }
+         }
+      }
+
+      //
+      // Place the cursor to the current item on next loop
+      //
+      for (y = 0; y < i; y++)
+      {
+         if (w == rgMenuItem[y].wValue)
+         {
+            w = y;
+            break;
+         }
+      }
+   }
+}
+
 static VOID
 PAL_SellMenu_OnItemChange(
    WORD         wCurrentItem

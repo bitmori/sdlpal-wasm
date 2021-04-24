@@ -741,6 +741,17 @@ PAL_PlayerLevelUp(
    WORD          wNumLevel
 );
 
+VOID
+PAL_TeamAppendMember(
+   WORD wPlayerRole
+);
+
+VOID
+PAL_TeamRemoveMember(
+   INT index,
+   WORD wPlayerRole
+);
+
 PAL_C_LINKAGE_END
 
 #endif

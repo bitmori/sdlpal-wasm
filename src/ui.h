@@ -110,6 +110,8 @@
 #define STATUS_LABEL_HASTE                 (PAL_EXTRA_STATUS_LABEL_START + 8)
 #define STATUS_LABEL_DUALATK               (PAL_EXTRA_STATUS_LABEL_START + 9)
 
+#define TEAMMENU_LABEL_LOCK                (PAL_EXTRA_STATUS_LABEL_START + 10)
+
 #define STATUS_COLOR_EQUIPMENT             0xBE
 
 #define EQUIP_LABEL_HEAD                   600

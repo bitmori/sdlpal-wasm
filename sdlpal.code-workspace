@@ -25,7 +25,8 @@
 	"files.associations": {
 		"algorithm": "c",
 		"chrono": "c",
-		"limits": "c"
+		"limits": "c",
+		"text.h": "c"
 	}
 }
 }
