@@ -473,7 +473,7 @@ PAL_Spinbox(
 
 static INT
 PAL_SpinboxMenu(
-    int lower_bound, int upper_bound, int default_val, WORD wLabel)
+    int lower_bound, int upper_bound, int default_val, WORD wLabel, BYTE bLabelColor)
 /*++
   Purpose:
 
@@ -503,7 +503,7 @@ PAL_SpinboxMenu(
    // Activate the menu
    //
    wReturnValue = PAL_Spinbox(lower_bound, upper_bound, default_val,
-                              &dummyMenuItem, MENUITEM_COLOR_INACTIVE);
+                              &dummyMenuItem, bLabelColor);
 
    if (wReturnValue != MENUITEM_VALUE_CANCELLED)
    {
@@ -1840,22 +1840,11 @@ PAL_BuyMenu(
       }
       int upper_bound = min(99, gpGlobals->dwCash / gpGlobals->g.rgObject[w].item.wPrice - PAL_CountItem(w));
       
-      int amount = PAL_SpinboxMenu(1, upper_bound, 1, BUYMENU_LABEL_CURRENT);
+      int amount = PAL_SpinboxMenu(1, upper_bound, 1, BUYMENU_LABEL_GAIN, MENUITEM_COLOR_SELECTED);
       if (amount != MENUITEM_VALUE_CANCELLED && amount >= 1) {
          gpGlobals->dwCash -= amount * gpGlobals->g.rgObject[w].item.wPrice;
          PAL_AddItemToInventory(w, amount);
       }
-      // if (gpGlobals->g.rgObject[w].item.wPrice <= gpGlobals->dwCash)
-      // {
-      //    if (PAL_ConfirmMenu())
-      //    {
-      //       //
-      //       // Player bought an item
-      //       //
-      //       gpGlobals->dwCash -= gpGlobals->g.rgObject[w].item.wPrice;
-      //       PAL_AddItemToInventory(w, 1);
-      //    }
-      // }
 
       //
       // Place the cursor to the current item on next loop
@@ -2206,11 +2195,12 @@ PAL_SellMenu(
          break;
       }
 
-      if (PAL_ConfirmMenu())
-      {
-         if (PAL_AddItemToInventory(w, -1))
+      int amount = PAL_SpinboxMenu(1, PAL_CountItem(w), 1, SELLMENU_LABEL_SALE, MENUITEM_COLOR_INACTIVE);
+      if (amount != MENUITEM_VALUE_CANCELLED && amount >= 1) {
+         gpGlobals->dwCash -= amount * gpGlobals->g.rgObject[w].item.wPrice;
+         if (PAL_AddItemToInventory(w, -amount))
          {
-            gpGlobals->dwCash += gpGlobals->g.rgObject[w].item.wPrice / 2;
+            gpGlobals->dwCash += gpGlobals->g.rgObject[w].item.wPrice * amount / 2;
          }
       }
    }
