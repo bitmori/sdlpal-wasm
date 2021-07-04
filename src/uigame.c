@@ -678,9 +678,9 @@ PAL_ScriptSelectionMenu(VOID) {
    PAL_DeleteBox(lpBox);
 
    VIDEO_UpdateScreen(&rect);
-
-   if (wReturnValue != MENUITEM_VALUE_CANCELLED)
-   {
+   if (wReturnValue == 1) {
+      PAL_TeamFormationMenu();
+   } else if (wReturnValue != MENUITEM_VALUE_CANCELLED) {
       PAL_ExecuteECMAScript(gpGlobals->duk, wReturnValue);
    }
 }
