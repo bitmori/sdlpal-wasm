@@ -62,6 +62,19 @@ static LPWSTR gc_rgszExtraWords[CP_MAX][EX_WORD_COUNT] = {
 	{L"\x5496\x5561\x811a\x672c", L"\x60c5\x62a5", L"\x6bd2\x6297", L"\x5996\x529b", L"\x5077\x7a83", L"\x653b\x51fb\x6548\x679c", L"\x98ce\x96f7\x6c34\x706b\x571f", L"\x5080\x5121", L"\x5929\x7f61", L"\x91d1\x521a", L"\x4ed9\x98ce", L"\x9189\x4ed9", L"\x961F\x4F0D\x9501\x5B9A"},
 };
 
+static LPWSTR gc_rgszDebugWords[CP_MAX][DEBUG_WORD_COUNT] = {
+	{
+	L"\x6230\x5834\x67E5\x770B", L"\x6CD5\x8853\x6548\x679C", 
+	L"\x4EBA\x7269\x6A21\x578B", L"\x4EBA\x7269\x982D\x50CF", 
+	L"\x5C0D\x8C61\x67E5\x770B", L"\x4ED9\x8853\x6578\x64DA",
+	},
+	{
+	L"\x6218\x573A\x67E5\x770B", L"\x6CD5\x672F\x6548\x679C", 
+	L"\x4EBA\x7269\x6A21\x578B", L"\x4EBA\x7269\x5934\x50CF", 
+	L"\x5BF9\x8C61\x67E5\x770B", L"\x4ED9\x672F\x6570\x636E"
+	},
+};
+
 LPWSTR g_rcCredits[12];
 
 TEXTLIB         g_TextLib;
@@ -880,7 +893,8 @@ PAL_InitText(
 	   g_TextLib.lpIndexBuf = NULL;
 
 	   memcpy(g_TextLib.lpWordBuf + SYSMENU_LABEL_LAUNCHSETTING, gc_rgszSDLPalWords[PAL_GetCodePage()], SDLPAL_EXTRA_WORD_COUNT * sizeof(LPCWSTR));
-	   memcpy(g_TextLib.lpWordBuf + SYSMENU_LABEL_LAUNCHSETTING + 1, gc_rgszExtraWords[PAL_GetCodePage()], EX_WORD_COUNT * sizeof(LPCWSTR));
+	   memcpy(g_TextLib.lpWordBuf + SYSMENU_LABEL_LAUNCHSETTING + SDLPAL_EXTRA_WORD_COUNT, gc_rgszExtraWords[PAL_GetCodePage()], EX_WORD_COUNT * sizeof(LPCWSTR));
+	   memcpy(g_TextLib.lpWordBuf + SYSMENU_LABEL_LAUNCHSETTING + SDLPAL_EXTRA_WORD_COUNT + EX_WORD_COUNT, gc_rgszDebugWords[PAL_GetCodePage()], DEBUG_WORD_COUNT * sizeof(LPCWSTR));
 	   memcpy(g_TextLib.lpWordBuf + SYSMENU_LABEL_BATTLEMODE, gc_rgszAdditionalWords[PAL_GetCodePage()], ATB_WORD_COUNT * sizeof(LPCWSTR));
 
        g_TextLib.iFontFlavor = kFontFlavorAuto;

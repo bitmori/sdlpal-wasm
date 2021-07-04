@@ -980,3 +980,72 @@ PAL_C_LINKAGE char* strcasestr(const char *a, const char *b) {
 	return ptr;
 }
 #endif
+
+// static int onClosing(uiWindow *w, void *data)
+// {
+// 	uiQuit();
+// 	return 1;
+// }
+
+// static int onShouldQuit(void *data)
+// {
+// 	uiWindow *mainwin = uiWindow(data);
+
+// 	uiControlHide(uiControl(mainwin));
+// 	return 1;
+// }
+
+// static int number_input_box_val;
+// static void onSpinboxChanged(uiSpinbox *s, void *data)
+// {
+// 	number_input_box_val = uiSpinboxValue(s);
+// }
+
+// static void onOKButtonClicked(uiButton *b, void *data) {
+// 	// uiQuit();
+// }
+
+// static void onCancelButtonClicked(uiButton *b, void *data) {
+// 	// uiQuit();
+// }
+
+// int UTIL_CreateNumberInputBox(const char *window_title, int min_val, int max_val, int default_val) {
+// 	uiInitOptions options;
+// 	const char *err;
+
+// 	memset(&options, 0, sizeof (uiInitOptions));
+// 	err = uiInit(&options);
+// 	if (err != NULL) {
+// 		fprintf(stderr, "error initializing libui: %s", err);
+// 		uiFreeInitError(err);
+// 		return 1;
+// 	}
+// 	uiWindow * mainwin = uiNewWindow(window_title, 640, 180, 1);
+// 	uiWindowOnClosing(mainwin, onClosing, NULL);
+// 	uiOnShouldQuit(onShouldQuit, mainwin);
+
+// 	uiBox *vbox;
+// 	vbox = uiNewVerticalBox();
+// 	uiBoxAppend(vbox,
+// 		uiControl(uiNewLabel("This is a label. Right now, labels can only span one line.")),
+// 		0);
+
+// 	uiSpinbox* spinbox = uiNewSpinbox(0, 100);
+// 	uiSpinboxOnChanged(spinbox, onSpinboxChanged, NULL);
+// 	uiBoxAppend(vbox, uiControl(spinbox), 0);
+
+// 	uiButton *ok_btn = uiNewButton("OK");
+// 	uiButton *cancel_btn = uiNewButton("Cancel");
+// 	uiButtonOnClicked(ok_btn, onOKButtonClicked, NULL);
+// 	uiButtonOnClicked(cancel_btn, onCancelButtonClicked, NULL);
+// 	uiBoxAppend(vbox, uiControl(ok_btn), 1);
+// 	uiBoxAppend(vbox, uiControl(cancel_btn), 1);
+
+// 	uiBoxSetPadded(vbox, 1);
+// 	uiWindowSetChild(mainwin, uiControl(vbox));
+// 	uiWindowSetMargined(mainwin, 1);
+
+// 	uiControlShow(uiControl(mainwin));
+// 	uiMain();
+// 	return number_input_box_val;
+// }

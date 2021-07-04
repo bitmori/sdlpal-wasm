@@ -176,6 +176,7 @@ typedef const WCHAR        *LPCWSTR;
    The example of this file can be found in directories of existing portings.
  */
 #include "pal_config.h"
+// #include "libui.h"
 
 #if !SDL_VERSION_ATLEAST(2,0,0)
 # if PAL_HAS_GLSL

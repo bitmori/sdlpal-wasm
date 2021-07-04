@@ -40,6 +40,7 @@
 #include "ui.h"
 #include "uigame.h"
 #include "uibattle.h"
+// #include "uidebug.h"
 #include "magicmenu.h"
 #include "itemmenu.h"
 #include "palette.h"

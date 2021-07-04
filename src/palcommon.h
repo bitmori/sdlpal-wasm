@@ -83,9 +83,10 @@ typedef DWORD           PAL_POS;
 
 #define     MAX_PROPERTY_VALUE           9999
 
-#define     EX_WORD_COUNT 13
+#define     EX_WORD_COUNT                13
+#define     DEBUG_WORD_COUNT             6
 
-#define     MINIMAL_WORD_COUNT           (MAX_OBJECTS + 13 + EX_WORD_COUNT)
+#define     MINIMAL_WORD_COUNT           (MAX_OBJECTS + 13 + EX_WORD_COUNT + DEBUG_WORD_COUNT)
 
 #define     ALLOW_REVIVE_AS_HEAL         1
 

@@ -26,7 +26,11 @@
 		"algorithm": "c",
 		"chrono": "c",
 		"limits": "c",
-		"text.h": "c"
+		"text.h": "c",
+		"main.h": "c",
+		"common.h": "c",
+		"midi.h": "c",
+		"battle.h": "c"
 	}
 }
 }

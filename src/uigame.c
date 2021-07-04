@@ -389,6 +389,139 @@ PAL_SwitchMenu(
    return (wReturnValue == MENUITEM_VALUE_CANCELLED) ? fEnabled : ((wReturnValue == 0) ? FALSE : TRUE);
 }
 
+static INT
+PAL_Spinbox(
+   int lower_bound, int upper_bound, int val,
+   LPCMENUITEM rgMenuItem, BYTE bLabelColor)
+{
+   int i;
+   PAL_POS num_pos = PAL_XY(PAL_X(rgMenuItem->pos) + 85, PAL_Y(rgMenuItem->pos) + 4);
+   PAL_POS box_pos = PAL_XY(PAL_X(rgMenuItem->pos) - 14, PAL_Y(rgMenuItem->pos) - 10);
+   //
+   // Fix issue #166
+   //
+   g_bRenderPaused = TRUE;
+   //
+   // Fix issue #166
+   //
+   g_bRenderPaused = FALSE;
+   VIDEO_UpdateScreen(NULL);
+
+   while (TRUE)
+   {
+      PAL_ClearKeyState();
+
+      //
+      // Redraw the selected item if needed.
+      //
+      // if (rgMenuItem[wCurrentItem].fEnabled)
+      // {
+      //    PAL_DrawText(PAL_GetWord(rgMenuItem[wCurrentItem].wNumWord),
+      //                 rgMenuItem[wCurrentItem].pos, MENUITEM_COLOR_SELECTED, FALSE, TRUE, FALSE);
+      // }
+
+      PAL_ProcessEvent();
+
+      if ((g_InputState.dwKeyPress & (kKeyDown | kKeyLeft)) && val - 1 >= lower_bound)
+      {
+         val--;
+      }else if ((g_InputState.dwKeyPress & (kKeyUp | kKeyRight)) && val + 1 <= upper_bound)
+      {
+         val++;
+      }
+      else if (g_InputState.dwKeyPress & kKeyMenu)
+      {
+         //
+         // User cancelled
+         //
+         break;
+      }
+      else if (g_InputState.dwKeyPress & kKeySearch)
+      {
+         //
+         // User pressed Enter
+         //
+         return val;
+      }
+      //
+      // Fix issue #166
+      //
+      g_bRenderPaused = TRUE;
+
+      //
+      // User pressed the down or right arrow key
+      //
+      
+      PAL_CreateSingleLineBox(box_pos, 8, TRUE);
+      PAL_DrawText(PAL_GetWord(rgMenuItem->wNumWord), rgMenuItem->pos, bLabelColor, TRUE, TRUE, FALSE);
+      PAL_DrawNumber(val, 5, num_pos, kNumColorYellow, kNumAlignRight);
+
+      //
+      // Fix issue #166
+      //
+      g_bRenderPaused = FALSE;
+      VIDEO_UpdateScreen(NULL);
+
+      //
+      // Use delay function to avoid high CPU usage.
+      //
+      SDL_Delay(50);
+   }
+
+   return MENUITEM_VALUE_CANCELLED;
+}
+
+static INT
+PAL_SpinboxMenu(
+    int lower_bound, int upper_bound, int default_val, WORD wLabel)
+/*++
+  Purpose:
+
+    Show a common selection box.
+
+  Parameters:
+
+	[IN]  wItems - item word array.
+
+  Return value:
+
+    User-selected index.
+
+--*/
+{
+	LPBOX           lpBox;
+   INT            wReturnValue;
+   const SDL_Rect  rect = {131, 50, 165, 50 };
+
+   MENUITEM dummyMenuItem = {1, wLabel, TRUE, PAL_XY(rect.x + 14, rect.y + 10)};
+   //
+   // Create the boxes
+   //
+   lpBox = PAL_CreateSingleLineBox(PAL_XY(rect.x, rect.y), 8, TRUE);
+
+   //
+   // Activate the menu
+   //
+   wReturnValue = PAL_Spinbox(lower_bound, upper_bound, default_val,
+                              &dummyMenuItem, MENUITEM_COLOR_INACTIVE);
+
+   if (wReturnValue != MENUITEM_VALUE_CANCELLED)
+   {
+      if (!PAL_ConfirmMenu()) {
+         wReturnValue = MENUITEM_VALUE_CANCELLED;
+      }
+   }
+
+   //
+   // Delete the boxes
+   //
+   PAL_DeleteBox(lpBox);
+
+   VIDEO_UpdateScreen(&rect);
+   return wReturnValue;
+}
+
+
 #ifndef PAL_CLASSIC
 
 static VOID
@@ -1705,18 +1838,24 @@ PAL_BuyMenu(
       {
          break;
       }
-
-      if (gpGlobals->g.rgObject[w].item.wPrice <= gpGlobals->dwCash)
-      {
-         if (PAL_ConfirmMenu())
-         {
-            //
-            // Player bought an item
-            //
-            gpGlobals->dwCash -= gpGlobals->g.rgObject[w].item.wPrice;
-            PAL_AddItemToInventory(w, 1);
-         }
+      int upper_bound = min(99, gpGlobals->dwCash / gpGlobals->g.rgObject[w].item.wPrice - PAL_CountItem(w));
+      
+      int amount = PAL_SpinboxMenu(1, upper_bound, 1, BUYMENU_LABEL_CURRENT);
+      if (amount != MENUITEM_VALUE_CANCELLED && amount >= 1) {
+         gpGlobals->dwCash -= amount * gpGlobals->g.rgObject[w].item.wPrice;
+         PAL_AddItemToInventory(w, amount);
       }
+      // if (gpGlobals->g.rgObject[w].item.wPrice <= gpGlobals->dwCash)
+      // {
+      //    if (PAL_ConfirmMenu())
+      //    {
+      //       //
+      //       // Player bought an item
+      //       //
+      //       gpGlobals->dwCash -= gpGlobals->g.rgObject[w].item.wPrice;
+      //       PAL_AddItemToInventory(w, 1);
+      //    }
+      // }
 
       //
       // Place the cursor to the current item on next loop
