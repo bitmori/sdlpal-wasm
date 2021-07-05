@@ -678,10 +678,20 @@ PAL_ScriptSelectionMenu(VOID) {
    PAL_DeleteBox(lpBox);
 
    VIDEO_UpdateScreen(&rect);
-   if (wReturnValue == 1) {
+   switch (wReturnValue)
+   {
+   case 1:
       PAL_TeamFormationMenu();
-   } else if (wReturnValue != MENUITEM_VALUE_CANCELLED) {
+      break;
+   case 2:
+      break;
+   case 3:
+   case 4:
+   case 5:
       PAL_ExecuteECMAScript(gpGlobals->duk, wReturnValue);
+      break;
+   default:
+      break;
    }
 }
 
@@ -1917,12 +1927,12 @@ PAL_SpecialBuyMenu(
          break;
       }
 
-      if (PAL_ConfirmMenu())
-      {
-         //
-         // Player get an item
-         //
-         PAL_AddItemToInventory(w, 1);
+      int upper_bound = 99 - PAL_CountItem(w);
+            
+      int amount = PAL_SpinboxMenu(1, upper_bound, 1, BUYMENU_LABEL_GAIN, MENUITEM_COLOR_SELECTED);
+      if (amount != MENUITEM_VALUE_CANCELLED && amount >= 1) {
+         gpGlobals->dwCash -= amount * gpGlobals->g.rgObject[w].item.wPrice;
+         PAL_AddItemToInventory(w, amount);
       }
 
       //
@@ -1939,6 +1949,44 @@ PAL_SpecialBuyMenu(
    }
 }
 
+static INT PAL_CharPopupMenu(PAL_POS pos, INT rgwItems[MAX_STORE_ITEM], BOOL rgbEnabled[MAX_STORE_ITEM]) 
+{
+   MENUITEM         rgMenuItem[MAX_STORE_ITEM];
+   int              i, y;
+   static WORD      w;
+   WORD             wMagic;
+   const SDL_Rect   rect = {PAL_X(pos), PAL_Y(pos), 285, 90};
+
+   // const SDL_Rect   rect = {35, 62, 285, 90};
+   y = rect.y+13;
+
+   //
+   // Generate one menu items for each player in the party
+   //
+   for (i = 0; i <= MAX_STORE_ITEM; i++)
+   {
+      if (rgwItems[i] == 0)
+      {
+         break;
+      }
+
+      rgMenuItem[i].wValue = rgwItems[i];
+      rgMenuItem[i].wNumWord = rgwItems[i];
+      rgMenuItem[i].fEnabled = rgbEnabled[i];
+      rgMenuItem[i].pos = PAL_XY(rect.x + 13, y);
+
+      y += 18;
+   }
+   int item_count = i;
+
+   //
+   // Draw the box
+   //
+   PAL_CreateBox(pos, item_count - 1, PAL_MenuTextMaxWidth(rgMenuItem, sizeof(rgMenuItem)/sizeof(MENUITEM)) - 1, 0, FALSE);
+
+   w = PAL_ReadMenu(NULL, rgMenuItem, item_count, 0, MENUITEM_COLOR);
+   return w;
+}
 
 static VOID
 PAL_TeamFormationMenu_OnItemChange(
@@ -1974,11 +2022,6 @@ PAL_TeamFormationMenu_OnItemChange(
             break;
          }
       }
-   } else if (wCurrentItem == 99 ) {
-      // is current team locked?
-      n = gpGlobals->fLockTeamMember;
-   } else {
-      n = gpGlobals->nExpMultiplier;
    }
 
    if( __buymenu_firsttime_render )
@@ -2016,6 +2059,9 @@ PAL_TeamFormationMenu(
    WORD            w;
    SDL_Rect        rect = {125, 8, 190, 190};
 
+   INT popup_opt[MAX_STORE_ITEM] = {TEAMMENU_LABEL_JOIN, TEAMMENU_LABEL_LEARN, TEAMMENU_LABEL_FORGET, TEAMMENU_LABEL_DATA_MOD};
+   BOOL popup_first[MAX_STORE_ITEM] = {TRUE, TRUE, TRUE, TRUE};
+
    //
    // create the menu items
    //
@@ -2023,36 +2069,12 @@ PAL_TeamFormationMenu(
 
    for (i = 0; i < MAX_PLAYABLE_PLAYER_ROLES; i++)
    {
-      // UTIL_LogOutput(LOGLEVEL_DEBUG, "[SP_SHOP] %.4x\n", rgwItems[i]);
-
       rgMenuItem[i].wValue = i;
       rgMenuItem[i].wNumWord = gpGlobals->g.PlayerRoles.rgwName[i];
       rgMenuItem[i].fEnabled = TRUE;
       rgMenuItem[i].pos = PAL_XY(150, y);
-
       y += 18;
    }
-   // Team lock
-   rgMenuItem[i].wValue = 99;
-   rgMenuItem[i].wNumWord = TEAMMENU_LABEL_LOCK;
-   rgMenuItem[i].fEnabled = TRUE;
-   rgMenuItem[i].pos = PAL_XY(150, y);
-   i++;
-   y+=18;
-   // Exp multiplier reset
-   rgMenuItem[i].wValue = 101;
-   rgMenuItem[i].wNumWord = STATUS_LABEL_EXP;
-   rgMenuItem[i].fEnabled = TRUE;
-   rgMenuItem[i].pos = PAL_XY(150, y);
-   i++;
-   y+=18;
-   // Exp multiplier * 2
-   rgMenuItem[i].wValue = 102;
-   rgMenuItem[i].wNumWord = STATUS_LABEL_EXP;
-   rgMenuItem[i].fEnabled = TRUE;
-   rgMenuItem[i].pos = PAL_XY(150, y);
-   i++;
-   y+=18;
    //
    // Draw the box
    //
@@ -2067,10 +2089,8 @@ PAL_TeamFormationMenu(
       PAL_DrawNumber(w, 6, PAL_XY(235, 25 + y * 18), kNumColorCyan, kNumAlignRight);
    }
    y++;
-   PAL_DrawNumber(1, 6, PAL_XY(235, 25 + y * 18), kNumColorBlue, kNumAlignRight);
-   y++;
-   PAL_DrawNumber(2, 6, PAL_XY(235, 25 + y * 18), kNumColorYellow, kNumAlignRight);
-   y++;
+   // PAL_DrawNumber(gpGlobals->nExpMultiplier, 6, PAL_XY(235, 25 + y * 18), kNumColorBlue, kNumAlignRight);
+   // y++;
 
 
    w = 0;
@@ -2084,32 +2104,65 @@ PAL_TeamFormationMenu(
       {
          break;
       }
-
-      if (PAL_ConfirmMenu())
+      
+      int index = -1;
+      for (int j = 0; j <= gpGlobals->wMaxPartyMemberIndex; j++)
       {
-         if (w == 99) {
-            gpGlobals->fLockTeamMember = !gpGlobals->fLockTeamMember;
-         } else if (w == 101) {
-            gpGlobals->nExpMultiplier = 1;
-         } else if (w == 102) {
-            gpGlobals->nExpMultiplier *= 2;
-         } else {
-            int index = -1;
-            for (int j = 0; j <= gpGlobals->wMaxPartyMemberIndex; j++)
-            {
-               if (gpGlobals->rgParty[j].wPlayerRole == w)
-               {
-                  index = j;
-                  break;
-               }
-            }
-            if (index == -1) {
-               PAL_TeamAppendMember(w);
-            } else {
-               PAL_TeamRemoveMember(index, w);
-            }
+         if (gpGlobals->rgParty[j].wPlayerRole == w)
+         {
+            index = j;
+            break;
          }
       }
+      int pop_x = PAL_X(rgMenuItem[w].pos);
+      int pop_y = PAL_Y(rgMenuItem[w].pos) + 8;
+      PAL_POS pop_pos = PAL_XY(pop_x, pop_y);
+      // Fix render problem with shadow
+      VIDEO_BackupScreen(gpScreen);
+      popup_opt[0] = (index == -1) ? TEAMMENU_LABEL_JOIN : TEAMMENU_LABEL_LEAVE;
+      if (popup_opt[0] == TEAMMENU_LABEL_JOIN)
+      {
+         popup_first[0] = (gpGlobals->wMaxPartyMemberIndex >= MAX_PLAYERS_IN_PARTY - 1) ? FALSE : TRUE;
+      }
+      else
+      {
+         popup_first[0] = (gpGlobals->wMaxPartyMemberIndex == 0) ? FALSE : TRUE;
+      }
+      int r = PAL_CharPopupMenu(pop_pos, popup_opt, popup_first);
+      WORD _m = 0;
+      switch (r)
+      {
+      case TEAMMENU_LABEL_LEAVE:
+         if (PAL_ConfirmMenu())
+         {
+            PAL_TeamRemoveMember(index, w);
+         }
+         break;
+      case TEAMMENU_LABEL_JOIN:
+         if (PAL_ConfirmMenu())
+         {
+            PAL_TeamAppendMember(w);
+         }
+         break;
+      case TEAMMENU_LABEL_FORGET:
+         _m = PAL_ShowPlayerMagicMenu(w, 0);
+         if (_m != 0 && PAL_ConfirmMenu())
+         {
+            PAL_RemoveMagic(w, _m);
+         }
+         break;
+      case TEAMMENU_LABEL_LEARN:
+         // _m = PAL_ShowAllMagicMenu();
+         // if (_m != 0 && PAL_ConfirmMenu())
+         // {
+         //    PAL_AddMagic(w, _m);
+         // }
+         break;
+      default:
+         break;
+      }
+      // Fix render problem with shadow
+      VIDEO_RestoreScreen(gpScreen);
 
       //
       // Place the cursor to the current item on next loop
@@ -2471,210 +2524,6 @@ PAL_EquipItemMenu(
    }
 }
 
-
-VOID
-PAL_MergeItemMenu(
-   VOID
-)
-{
-#if 0
-   PAL_LARGE BYTE   bufBackground[320 * 200];
-   PAL_LARGE BYTE   bufImageBox[72 * 72];
-   PAL_LARGE BYTE   bufImage[2048];
-   WORD             w;
-   int              iCurrentPlayer, i;
-   BYTE             bColor, bSelectedColor;
-   DWORD            dwColorChangeTime;
-
-   PAL_MKFDecompressChunk(bufBackground, 320 * 200, MERGEMENU_BACKGROUND_FBPNUM,
-      gpGlobals->f.fpFBP);
-
-   iCurrentPlayer = 0;
-   bSelectedColor = MENUITEM_COLOR_SELECTED_FIRST;
-   dwColorChangeTime = SDL_GetTicks() + (600 / MENUITEM_COLOR_SELECTED_TOTALNUM);
-   while (TRUE)
-   {
-      wItem = gpGlobals->wLastUnequippedItem;
-
-      //
-      // Draw the background
-      //
-      PAL_FBPBlitToSurface(bufBackground, gpScreen);
-
-      //
-      // Draw the item picture
-      //
-      if (PAL_MKFReadChunk(bufImage, 2048,
-         gpGlobals->g.rgObject[wItem].item.wBitmap, gpGlobals->f.fpBALL) > 0)
-      {
-         PAL_RLEBlitToSurface(bufImage, gpScreen, PAL_XY_OFFSET(gConfig.ScreenLayout.EquipImageBox, 8, 8));
-      }
-
-      //
-      // Draw the current equipment of the selected player
-      //
-      w = gpGlobals->rgParty[iCurrentPlayer].wPlayerRole;
-      for (i = 0; i < MAX_PLAYER_EQUIPMENTS; i++)
-      {
-         if (gpGlobals->g.PlayerRoles.rgwEquipment[i][w] != 0)
-         {
-            PAL_DrawText(PAL_GetWord(gpGlobals->g.PlayerRoles.rgwEquipment[i][w]),
-				gConfig.ScreenLayout.EquipNames[i], MENUITEM_COLOR, TRUE, FALSE, FALSE);
-         }
-      }
-
-      //
-      // Draw the stats of the currently selected player
-      //
-      PAL_DrawNumber(PAL_GetPlayerAttackStrength(w), 4, gConfig.ScreenLayout.EquipStatusValues[0], kNumColorCyan, kNumAlignRight);
-      PAL_DrawNumber(PAL_GetPlayerMagicStrength(w), 4, gConfig.ScreenLayout.EquipStatusValues[1], kNumColorCyan, kNumAlignRight);
-      PAL_DrawNumber(PAL_GetPlayerDefense(w), 4, gConfig.ScreenLayout.EquipStatusValues[2], kNumColorCyan, kNumAlignRight);
-      PAL_DrawNumber(PAL_GetPlayerDexterity(w), 4, gConfig.ScreenLayout.EquipStatusValues[3], kNumColorCyan, kNumAlignRight);
-      PAL_DrawNumber(PAL_GetPlayerFleeRate(w), 4, gConfig.ScreenLayout.EquipStatusValues[4], kNumColorCyan, kNumAlignRight);
-
-      //
-      // Draw a box for player selection
-      //
-      PAL_CreateBox(gConfig.ScreenLayout.EquipRoleListBox, gpGlobals->wMaxPartyMemberIndex, PAL_WordMaxWidth(36, 4) - 1, 0, FALSE);
-
-      //
-      // Draw the label of players
-      //
-      for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
-      {
-         w = gpGlobals->rgParty[i].wPlayerRole;
-
-         if (iCurrentPlayer == i)
-         {
-            if (gpGlobals->g.rgObject[wItem].item.wFlags & (kItemFlagEquipableByPlayerRole_First << w))
-            {
-               bColor = bSelectedColor;
-            }
-            else
-            {
-               bColor = MENUITEM_COLOR_SELECTED_INACTIVE;
-            }
-         }
-         else
-         {
-            if (gpGlobals->g.rgObject[wItem].item.wFlags & (kItemFlagEquipableByPlayerRole_First << w))
-            {
-               bColor = MENUITEM_COLOR;
-            }
-            else
-            {
-               bColor = MENUITEM_COLOR_INACTIVE;
-            }
-         }
-
-         PAL_DrawText(PAL_GetWord(gpGlobals->g.PlayerRoles.rgwName[w]),
-            PAL_XY_OFFSET(gConfig.ScreenLayout.EquipRoleListBox, 13, 13 + 18 * i), bColor, TRUE, FALSE, FALSE);
-      }
-
-      //
-      // Draw the text label and amount of the item
-      //
-      if (wItem != 0)
-      {
-         PAL_DrawText(PAL_GetWord(wItem), gConfig.ScreenLayout.EquipItemName, MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
-         PAL_DrawNumber(PAL_GetItemAmount(wItem), 2, gConfig.ScreenLayout.EquipItemAmount, kNumColorCyan, kNumAlignRight);
-      }
-
-      //
-      // Update the screen
-      //
-      VIDEO_UpdateScreen(NULL);
-
-      //
-      // Accept input
-      //
-      PAL_ClearKeyState();
-
-      while (TRUE)
-      {
-         PAL_ProcessEvent();
-
-         //
-         // See if we should change the highlight color
-         //
-         if (SDL_TICKS_PASSED(SDL_GetTicks(), dwColorChangeTime))
-         {
-            if ((WORD)bSelectedColor + 1 >=
-               (WORD)MENUITEM_COLOR_SELECTED_FIRST + MENUITEM_COLOR_SELECTED_TOTALNUM)
-            {
-               bSelectedColor = MENUITEM_COLOR_SELECTED_FIRST;
-            }
-            else
-            {
-               bSelectedColor++;
-            }
-
-            dwColorChangeTime = SDL_GetTicks() + (600 / MENUITEM_COLOR_SELECTED_TOTALNUM);
-
-            //
-            // Redraw the selected item if needed.
-            //
-            w = gpGlobals->rgParty[iCurrentPlayer].wPlayerRole;
-
-            if (gpGlobals->g.rgObject[wItem].item.wFlags & (kItemFlagEquipableByPlayerRole_First << w))
-            {
-               PAL_DrawText(PAL_GetWord(gpGlobals->g.PlayerRoles.rgwName[w]),
-                  PAL_XY_OFFSET(gConfig.ScreenLayout.EquipRoleListBox, 13, 13 + 18 * iCurrentPlayer), bSelectedColor, TRUE, TRUE, FALSE);
-            }
-         }
-
-         if (g_InputState.dwKeyPress != 0)
-         {
-            break;
-         }
-
-         SDL_Delay(1);
-      }
-
-      if (wItem == 0)
-      {
-         return;
-      }
-
-      if (g_InputState.dwKeyPress & (kKeyUp | kKeyLeft))
-      {
-         iCurrentPlayer--;
-         if (iCurrentPlayer < 0)
-         {
-            iCurrentPlayer = 0;
-         }
-      }
-      else if (g_InputState.dwKeyPress & (kKeyDown | kKeyRight))
-      {
-         iCurrentPlayer++;
-         if (iCurrentPlayer > gpGlobals->wMaxPartyMemberIndex)
-         {
-            iCurrentPlayer = gpGlobals->wMaxPartyMemberIndex;
-         }
-      }
-      else if (g_InputState.dwKeyPress & kKeyMenu)
-      {
-         return;
-      }
-      else if (g_InputState.dwKeyPress & kKeySearch)
-      {
-         w = gpGlobals->rgParty[iCurrentPlayer].wPlayerRole;
-
-         if (gpGlobals->g.rgObject[wItem].item.wFlags & (kItemFlagEquipableByPlayerRole_First << w))
-         {
-            //
-            // Run the equip script
-            //
-            gpGlobals->g.rgObject[wItem].item.wScriptOnEquip =
-               PAL_RunTriggerScript(gpGlobals->g.rgObject[wItem].item.wScriptOnEquip,
-                  gpGlobals->rgParty[iCurrentPlayer].wPlayerRole);
-         }
-      }
-   }
-#endif
-}
-
-
 VOID
 PAL_QuitGame(
    VOID
@@ -2693,4 +2542,236 @@ PAL_QuitGame(
 		PAL_FadeOut(2);
 		PAL_Shutdown(0);
 	}
+}
+
+static VOID PAL_BackgroundViewer()
+{
+   PAL_LARGE BYTE   bufBackground[320 * 200];
+   int              curr_bg = 0;
+   int              max_bg_id = PAL_MKFGetChunkCount(gpGlobals->f.fpFBP) - 1;
+
+   while (curr_bg >= 0 && curr_bg <= max_bg_id)
+   {
+      PAL_MKFDecompressChunk(bufBackground, 320 * 200, curr_bg, gpGlobals->f.fpFBP);
+
+      //
+      // Draw the background image
+      //
+      PAL_FBPBlitToSurface(bufBackground, gpScreen);
+      PAL_DrawNumber(curr_bg, 3, PAL_XY(5, 5), kNumColorCyan, kNumAlignLeft);
+
+      //
+      // Update the screen
+      //
+      VIDEO_UpdateScreen(NULL);
+
+      //
+      // Wait for input
+      //
+      PAL_ClearKeyState();
+
+      while (TRUE)
+      {
+         UTIL_Delay(1);
+
+         if (g_InputState.dwKeyPress & kKeyMenu)
+         {
+            return;
+         }
+         else if (g_InputState.dwKeyPress & (kKeyLeft | kKeyUp))
+         {
+            curr_bg --;
+            break;
+         }
+         else if (g_InputState.dwKeyPress & (kKeyRight | kKeyDown | kKeySearch))
+         {
+            curr_bg ++;
+            break;
+         }
+      }
+   }
+}
+
+static VOID
+PAL_MagicDataViewer(VOID)
+{
+
+}
+
+static VOID
+PAL_SoftstarMenu_OnItemChange(
+   WORD           wCurrentItem
+)
+{
+   const SDL_Rect      rect = {20, 8, 300, 175};
+   int                 i, n;
+   PAL_LARGE BYTE      bufImage[2048];
+
+   PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_ITEMBOX), gpScreen,
+      PAL_XY(35, 8));
+
+
+   if (wCurrentItem == 99 ) {
+      // is current team locked?
+      n = gpGlobals->fLockTeamMember;
+   } else {
+      n = gpGlobals->nExpMultiplier;
+   }
+
+   if( __buymenu_firsttime_render )
+      PAL_CreateSingleLineBoxWithShadow(PAL_XY(20, 105), 5, FALSE, 6);
+   else
+   //
+   // Draw the amount of this item in the inventory
+   //
+   PAL_CreateSingleLineBoxWithShadow(PAL_XY(20, 105), 5, FALSE, 0);
+   PAL_DrawText(PAL_GetWord(BUYMENU_LABEL_CURRENT), PAL_XY(30, 115), 0, FALSE, FALSE, FALSE);
+   PAL_DrawNumber(n, 6, PAL_XY(69, 119), kNumColorYellow, kNumAlignRight);
+
+   if( __buymenu_firsttime_render )
+      PAL_CreateSingleLineBoxWithShadow(PAL_XY(20, 145), 5, FALSE, 6);
+   else
+   //
+   // Draw the cash amount
+   //
+   PAL_CreateSingleLineBoxWithShadow(PAL_XY(20, 145), 5, FALSE, 0);
+   PAL_DrawText(PAL_GetWord(CASH_LABEL), PAL_XY(30, 155), 0, FALSE, FALSE, FALSE);
+   PAL_DrawNumber(gpGlobals->dwCash, 6, PAL_XY(69, 159), kNumColorYellow, kNumAlignRight);
+
+   VIDEO_UpdateScreen(&rect);
+   
+   __buymenu_firsttime_render = FALSE;
+}
+
+static VOID
+PAL_SoftstarMenu(VOID)
+{
+   MENUITEM        rgMenuItem[MAX_STORE_ITEM];
+   int             i, y;
+   WORD            w;
+   SDL_Rect        rect = {125, 8, 190, 190};
+
+   //
+   // create the menu items
+   //
+   y = 22;
+
+   i = 0;
+   // Team lock
+   rgMenuItem[i].wValue = 99;
+   rgMenuItem[i].wNumWord = TEAMMENU_LABEL_LOCK;
+   rgMenuItem[i].fEnabled = TRUE;
+   rgMenuItem[i].pos = PAL_XY(150, y);
+   i++;
+   y+=18;
+   // Exp multiplier reset
+   rgMenuItem[i].wValue = 101;
+   rgMenuItem[i].wNumWord = STATUS_LABEL_EXP;
+   rgMenuItem[i].fEnabled = TRUE;
+   rgMenuItem[i].pos = PAL_XY(150, y);
+   i++;
+   //
+   // Draw the box
+   //
+   PAL_CreateBox(PAL_XY(125, 8), 8, 8, 1, FALSE);
+
+   w = 0;
+   __buymenu_firsttime_render = TRUE;
+
+   while (TRUE)
+   {
+      w = PAL_ReadMenu(PAL_SoftstarMenu_OnItemChange, rgMenuItem, i, w, MENUITEM_COLOR);
+
+      if (w == MENUITEM_VALUE_CANCELLED)
+      {
+         break;
+      }
+      if (w == 101) {
+         int amount = PAL_SpinboxMenu(1, 100, gpGlobals->nExpMultiplier, BATTLEWIN_LEVELUP_LABEL, 0x8C);
+         if (amount != MENUITEM_VALUE_CANCELLED && amount >= 1) {
+            gpGlobals->nExpMultiplier = amount;
+         }
+      } else if (w == 99 && PAL_ConfirmMenu()) {
+         gpGlobals->fLockTeamMember = !gpGlobals->fLockTeamMember;
+      }
+
+      //
+      // Place the cursor to the current item on next loop
+      //
+      for (y = 0; y < i; y++)
+      {
+         if (w == rgMenuItem[y].wValue)
+         {
+            w = y;
+            break;
+         }
+      }
+   }
+}
+
+
+VOID PAL_DevMenu(VOID)
+{
+   LPBOX               lpMenuBox;
+   WORD                wReturnValue;
+   int                 iSlot, i;
+   const SDL_Rect      rect = {40, 60, 280, 135};
+
+   //
+   // Create menu items
+   //
+   const MENUITEM      rgDevMenuItem[] =
+   {
+      // value  label                        enabled   pos
+      { 1,      DEVMENU_LABEL_TEAM,          TRUE,     PAL_XY(53, 72) },
+      { 2,      GAMEMENU_LABEL_MAGIC,        TRUE,     PAL_XY(53, 72 + 18) },
+      { 3,      GAMEMENU_LABEL_INVENTORY,    TRUE,     PAL_XY(53, 72 + 36) },
+      { 4,      DEVMENU_LABEL_BG,            TRUE,     PAL_XY(53, 72 + 54) },
+      { 5,      DEVMENU_LABEL_OBJ,           TRUE,     PAL_XY(53, 72 + 72) },
+      { 6,      DEVMENU_LABEL_SS,            TRUE,     PAL_XY(53, 72 + 90) },
+   };
+   const int           nDevMenuItem = sizeof(rgDevMenuItem) / sizeof(MENUITEM);
+
+   //
+   // Create the menu box.
+   //
+   lpMenuBox = PAL_CreateBox(PAL_XY(40, 60), nDevMenuItem - 1, PAL_MenuTextMaxWidth(rgDevMenuItem, nDevMenuItem) - 1, 0, TRUE);
+
+   //
+   // Perform the menu.
+   //
+   wReturnValue = PAL_ReadMenu(NULL, rgDevMenuItem, nDevMenuItem, 0, MENUITEM_COLOR);
+
+   if (wReturnValue == MENUITEM_VALUE_CANCELLED)
+   {
+      //
+      // User cancelled the menu
+      //
+      PAL_DeleteBox(lpMenuBox);
+      VIDEO_UpdateScreen(&rect);
+      return;
+   }
+
+   switch (wReturnValue)
+   {
+   case 1:
+      PAL_TeamFormationMenu();
+      break;
+   case 2:
+      PAL_MagicDataViewer();
+      break;
+   case 3:
+      break;
+   case 4:
+      PAL_BackgroundViewer();
+      break;
+   case 5:
+
+      break;
+   case 6:
+      PAL_SoftstarMenu();
+      break;
+   }
+
+   PAL_DeleteBox(lpMenuBox);
 }

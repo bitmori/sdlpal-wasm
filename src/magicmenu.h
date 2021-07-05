@@ -46,6 +46,14 @@ PAL_MagicSelectionMenu(
    WORD         wDefaultMagic
 );
 
+WORD
+PAL_ShowPlayerMagicMenu(
+   WORD         wPlayerRole,
+   WORD         wDefaultMagic
+);
+
+// WORD PAL_ShowAllMagicMenu();
+
 PAL_C_LINKAGE_END
 
 #endif

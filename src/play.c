@@ -366,14 +366,6 @@ PAL_GameEquipItem(
 }
 
 VOID
-PAL_GameMergeItem(
-   VOID
-)
-{
-   PAL_MergeItemMenu();
-}
-
-VOID
 PAL_Search(
    VOID
 )
@@ -561,7 +553,7 @@ PAL_StartFrame(
       //
       // Show dev mystery
       //
-      PAL_GameMergeItem();
+      PAL_DevMenu();
    }
    else if (g_InputState.dwKeyPress & kKeyForce)
    {

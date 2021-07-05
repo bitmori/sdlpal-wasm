@@ -94,11 +94,6 @@ PAL_EquipItemMenu(
 );
 
 VOID
-PAL_MergeItemMenu(
-   VOID
-);
-
-VOID
 PAL_QuitGame(
    VOID
 );
@@ -112,6 +107,9 @@ VOID
 PAL_TeamFormationMenu(
    VOID
 );
+
+VOID
+PAL_DevMenu(VOID);
 
 PAL_C_LINKAGE_END
 

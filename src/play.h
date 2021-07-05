@@ -43,11 +43,6 @@ PAL_GameEquipItem(
 );
 
 VOID
-PAL_GameMergeItem(
-   VOID
-);
-
-VOID
 PAL_StartFrame(
    VOID
 );
