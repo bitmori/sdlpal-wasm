@@ -125,6 +125,7 @@
 #define TEAMMENU_LABEL_FORGET              (TEAMMENU_LABEL_LOCK + 4)
 #define TEAMMENU_LABEL_DATA_MOD            (TEAMMENU_LABEL_LOCK + 5)
 
+#define SSMENU_LABEL_DUMP                  (TEAMMENU_LABEL_LOCK + 6)
 // #define DEBUGMENU_LABEL_BATTLEFIELD        (SELLMENU_LABEL_SALE + 1)
 // #define DEBUGMENU_LABEL_SIM_BATTLE         (DEBUGMENU_LABEL_BATTLEFIELD - 1 + 2)
 // #define DEBUGMENU_LABEL_MGO_VIEWER         (DEBUGMENU_LABEL_BATTLEFIELD - 1 + 3)
@@ -141,6 +142,7 @@
 #define EQUIP_LABEL_FOOT                   604
 #define EQUIP_LABEL_NECK                   605
 
+#define CATALOGMENU_LABEL_GET              34
 #define BUYMENU_LABEL_CURRENT              35
 #define SELLMENU_LABEL_PRICE               25
 
@@ -184,6 +186,7 @@ typedef const MENUITEM* LPCMENUITEM;
 
 typedef struct tagOBJECTDESC
 {
+   BYTE                        bObjectType;
    WORD                        wObjectID;
    LPWSTR                      lpDesc;
    struct tagOBJECTDESC       *next;
@@ -310,6 +313,12 @@ PAL_FreeObjectDesc(
 
 LPCWSTR
 PAL_GetObjectDesc(
+   LPOBJECTDESC   lpObjectDesc,
+   WORD           wObjectID
+);
+
+BYTE
+PAL_GetObjectType(
    LPOBJECTDESC   lpObjectDesc,
    WORD           wObjectID
 );
