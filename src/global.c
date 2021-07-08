@@ -268,6 +268,11 @@ PAL_FreeGlobals(
    PAL_FreeConfig();
 }
 
+static VOID
+PAL_ReadExtraGameData(VOID) {
+   // rgwDevObjectCategory[2][7];
+
+}
 
 static VOID
 PAL_ReadGlobalGameData(

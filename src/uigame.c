@@ -395,6 +395,7 @@ PAL_Spinbox(
    LPCMENUITEM rgMenuItem, BYTE bLabelColor)
 {
    int i;
+   int def_val = val;
    PAL_POS num_pos = PAL_XY(PAL_X(rgMenuItem->pos) + 85, PAL_Y(rgMenuItem->pos) + 4);
    PAL_POS box_pos = PAL_XY(PAL_X(rgMenuItem->pos) - 14, PAL_Y(rgMenuItem->pos) - 10);
    //
@@ -425,9 +426,36 @@ PAL_Spinbox(
       if ((g_InputState.dwKeyPress & (kKeyDown | kKeyLeft)) && val - 1 >= lower_bound)
       {
          val--;
-      }else if ((g_InputState.dwKeyPress & (kKeyUp | kKeyRight)) && val + 1 <= upper_bound)
+      }
+      else if (g_InputState.dwKeyPress & kKeyPgDn)
+      {
+         if (val - 10 >= lower_bound)
+         {
+            val -= 10;
+         }
+         else
+         {
+            val = lower_bound;
+         }
+      }
+      else if ((g_InputState.dwKeyPress & (kKeyUp | kKeyRight)) && val + 1 <= upper_bound)
       {
          val++;
+      }
+      else if (g_InputState.dwKeyPress & kKeyPgUp)
+      {
+         if (val + 10 <= upper_bound)
+         {
+            val += 10;
+         }
+         else
+         {
+            val = upper_bound;
+         }
+      }
+      else if (g_InputState.dwKeyPress & kKeyRepeat)
+      {
+         val = def_val;
       }
       else if (g_InputState.dwKeyPress & kKeyMenu)
       {
@@ -1949,6 +1977,32 @@ PAL_SpecialBuyMenu(
    }
 }
 
+static VOID
+PAL_ItemCatalogMenu(
+   VOID
+)
+{
+   WORD      w;
+
+   while (TRUE)
+   {
+      w = PAL_ObjectSelectMenu(1);
+      if (w == 0)
+      {
+         break;
+      }
+
+      int upper_bound = 99 - PAL_CountItem(w);
+      
+      int amount = PAL_SpinboxMenu(1, upper_bound, 1, CATALOGMENU_LABEL_GET, MENUITEM_COLOR_SELECTED);
+      if (amount != MENUITEM_VALUE_CANCELLED && amount >= 1) {
+         gpGlobals->dwCash -= amount * gpGlobals->g.rgObject[w].item.wPrice;
+         PAL_AddItemToInventory(w, amount);
+      }
+
+   }
+}
+
 static INT PAL_CharPopupMenu(PAL_POS pos, INT rgwItems[MAX_STORE_ITEM], BOOL rgbEnabled[MAX_STORE_ITEM]) 
 {
    MENUITEM         rgMenuItem[MAX_STORE_ITEM];
@@ -2152,11 +2206,24 @@ PAL_TeamFormationMenu(
          }
          break;
       case TEAMMENU_LABEL_LEARN:
-         // _m = PAL_ShowAllMagicMenu();
-         // if (_m != 0 && PAL_ConfirmMenu())
-         // {
-         //    PAL_AddMagic(w, _m);
-         // }
+         _m = PAL_ObjectSelectMenu(2);
+         if (_m != 0 && PAL_ConfirmMenu())
+         {
+            PAL_AddMagic(w, _m);
+         }
+         break;
+      case TEAMMENU_LABEL_DATA_MOD:
+         if (popup_opt[0] != TEAMMENU_LABEL_JOIN) {
+            WORD old_ = gpGlobals->g.PlayerRoles.rgwSpriteNum[w];
+            int n_ = PAL_SpinboxMenu(1, 999, old_, gpGlobals->g.PlayerRoles.rgwName[w], MENUITEM_COLOR_INACTIVE);
+            if (n_ != MENUITEM_VALUE_CANCELLED && n_ != old_)
+            {
+               gpGlobals->g.PlayerRoles.rgwSpriteNum[w] = n_;
+               PAL_SetLoadFlags(kLoadPlayerSprite);
+               PAL_LoadResources();
+               gpGlobals->g.PlayerRoles.rgwWalkFrames[w] = 3;
+            }
+         }
          break;
       default:
          break;
@@ -2670,6 +2737,19 @@ PAL_SoftstarMenu(VOID)
    rgMenuItem[i].fEnabled = TRUE;
    rgMenuItem[i].pos = PAL_XY(150, y);
    i++;
+   y+=18;
+   rgMenuItem[i].wValue = 102;
+   rgMenuItem[i].wNumWord = SSMENU_LABEL_DUMP;
+   rgMenuItem[i].fEnabled = TRUE;
+   rgMenuItem[i].pos = PAL_XY(150, y);
+   i++;
+   y+=18;
+   rgMenuItem[i].wValue = 103;
+   rgMenuItem[i].wNumWord = SSMENU_LABEL_DUMP;
+   rgMenuItem[i].fEnabled = TRUE;
+   rgMenuItem[i].pos = PAL_XY(150, y);
+   i++;
+   y+=18;
    //
    // Draw the box
    //
@@ -2693,6 +2773,11 @@ PAL_SoftstarMenu(VOID)
          }
       } else if (w == 99 && PAL_ConfirmMenu()) {
          gpGlobals->fLockTeamMember = !gpGlobals->fLockTeamMember;
+      } else if (w == 102) {
+         int amount = PAL_SpinboxMenu(1, 5, 1, 1, 0x8C);
+         if (amount != MENUITEM_VALUE_CANCELLED && amount >= 1) {
+            
+         }
       }
 
       //
@@ -2761,6 +2846,7 @@ VOID PAL_DevMenu(VOID)
       PAL_MagicDataViewer();
       break;
    case 3:
+      PAL_ItemCatalogMenu();
       break;
    case 4:
       PAL_BackgroundViewer();

@@ -362,7 +362,7 @@ UTIL_LogSetPrelude(
     const char    *prelude
 );
 
-int UTIL_CreateNumberInputBox(const char *window_title, int min_val, int max_val, int default_val);
+void UTIL_DumpSSS(int id);
 
 PAL_C_LINKAGE_END
 

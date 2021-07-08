@@ -26,6 +26,8 @@ static int     g_iNumInventory = 0;
 static WORD    g_wItemFlags = 0;
 static BOOL    g_fNoDesc = FALSE;
 
+static WORD    rgAllObject[MAX_OBJECTS];
+
 WORD
 PAL_ItemSelectMenuUpdate(
    VOID
@@ -465,6 +467,235 @@ PAL_ItemSelectMenu(
 
          iPrevIndex = gpGlobals->iCurInvMenuItem;
       }
+   }
+
+   assert(FALSE);
+   return 0; // should not really reach here
+}
+
+static WORD
+PAL_ObjectSelectMenuUpdate(int * pCurInvMenuItem, BOOL fShowPic)
+{
+   int                i, j, k, line, item_delta;
+   WORD               wObject, wScript;
+   BYTE               bColor;
+   static BYTE        bufImage[2048];
+   static WORD        wPrevImageIndex = 0xFFFF;
+   const int          iItemsPerLine = 32 / gConfig.dwWordLength;
+   const int          iItemTextWidth = 8 * gConfig.dwWordLength + 20;
+   const int          iLinesPerPage = 7 - gConfig.ScreenLayout.ExtraItemDescLines;
+   const int          iCursorXOffset = gConfig.dwWordLength * 5 / 2;
+   const int          iAmountXOffset = gConfig.dwWordLength * 8 + 1;
+   const int          iPageLineOffset = (iLinesPerPage + 1) / 2;
+   const int          iPictureYOffset = (gConfig.ScreenLayout.ExtraItemDescLines > 1) ? (gConfig.ScreenLayout.ExtraItemDescLines - 1) * 16 : 0;
+
+   //
+   // Process input
+   //
+   if (g_InputState.dwKeyPress & kKeyUp)
+   {
+      item_delta = -iItemsPerLine;
+   }
+   else if (g_InputState.dwKeyPress & kKeyDown)
+   {
+      item_delta = iItemsPerLine;
+   }
+   else if (g_InputState.dwKeyPress & kKeyLeft)
+   {
+      item_delta = -1;
+   }
+   else if (g_InputState.dwKeyPress & kKeyRight)
+   {
+      item_delta = 1;
+   }
+   else if (g_InputState.dwKeyPress & kKeyPgUp)
+   {
+      item_delta = -(iItemsPerLine * iLinesPerPage);
+   }
+   else if (g_InputState.dwKeyPress & kKeyPgDn)
+   {
+      item_delta = iItemsPerLine * iLinesPerPage;
+   }
+   else if (g_InputState.dwKeyPress & kKeyHome)
+   {
+      item_delta = -(*pCurInvMenuItem);
+   }
+   else if (g_InputState.dwKeyPress & kKeyEnd)
+   {
+      item_delta = g_iNumInventory - (*pCurInvMenuItem) - 1;
+   }
+   else if (g_InputState.dwKeyPress & kKeyMenu)
+   {
+      return 0;
+   }
+   else
+   {
+      item_delta = 0;
+   }
+
+   //
+   // Make sure the current menu item index is in bound
+   //
+   if ((*pCurInvMenuItem) + item_delta < 0)
+      (*pCurInvMenuItem) = 0;
+   else if ((*pCurInvMenuItem) + item_delta >= g_iNumInventory)
+      (*pCurInvMenuItem) = g_iNumInventory-1;
+   else
+      (*pCurInvMenuItem) += item_delta;
+   //
+   // Redraw the box
+   //
+   PAL_CreateBoxWithShadow(PAL_XY(2, 0), iLinesPerPage - 1, 17, 1, FALSE, 0);
+
+   //
+   // Draw the texts in the current page
+   //
+   i = (*pCurInvMenuItem) / iItemsPerLine * iItemsPerLine - iItemsPerLine * iPageLineOffset;
+   if (i < 0)
+   {
+      i = 0;
+   }
+
+   for (j = 0; j < iLinesPerPage; j++)
+   {
+      for (k = 0; k < iItemsPerLine; k++)
+      {
+         wObject = rgAllObject[i];
+         bColor = MENUITEM_COLOR;
+
+         // printf("# %d, %d, %d\n", __LINE__, i, wObject);
+         if (i >= MAX_OBJECTS || wObject == 0)
+         {
+            //
+            // End of the list reached
+            //
+            j = iLinesPerPage;
+            break;
+         }
+
+         if (i == (*pCurInvMenuItem))
+         {
+            //
+            // This item is selectable
+            //
+            bColor = MENUITEM_COLOR_SELECTED;
+         }
+
+         //
+         // Draw the text
+         //
+         PAL_DrawText(PAL_GetWord(wObject), PAL_XY(15 + k * iItemTextWidth, 12 + j * 18), bColor, TRUE, FALSE, FALSE);
+
+         //
+         // Draw the cursor on the current selected item
+         //
+         if (i == (*pCurInvMenuItem))
+         {
+            PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_CURSOR),
+               gpScreen, PAL_XY(15 + iCursorXOffset + k * iItemTextWidth, 22 + j * 18));
+         }
+
+         //
+         // Draw the amount of this item
+         //
+         PAL_DrawNumber(wObject, 3, PAL_XY(15 + iAmountXOffset + k * iItemTextWidth, 17 + j * 18), kNumColorCyan, kNumAlignRight);
+         i++;
+      }
+   }
+
+   wObject = rgAllObject[*pCurInvMenuItem];
+   int xBase = 0, yBase = 140;
+   
+   if (fShowPic) {
+      //
+      // Draw the picture of current selected item
+      //
+      PAL_RLEBlitToSurfaceWithShadow(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_ITEMBOX), gpScreen,
+         PAL_XY(xBase+5, yBase+5 - iPictureYOffset),TRUE);
+      PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_ITEMBOX), gpScreen,
+         PAL_XY(xBase, yBase - iPictureYOffset));
+
+      if (gpGlobals->g.rgObject[wObject].item.wBitmap != wPrevImageIndex)
+      {
+         if (PAL_MKFReadChunk(bufImage, 2048,
+            gpGlobals->g.rgObject[wObject].item.wBitmap, gpGlobals->f.fpBALL) > 0)
+         {
+            wPrevImageIndex = gpGlobals->g.rgObject[wObject].item.wBitmap;
+         }
+         else
+         {
+            wPrevImageIndex = 0xFFFF;
+         }
+      }
+
+      if (wPrevImageIndex != 0xFFFF)
+      {
+         PAL_RLEBlitToSurface(bufImage, gpScreen, PAL_XY(xBase+8, yBase+7 - iPictureYOffset));
+      }
+   }
+
+   if (g_InputState.dwKeyPress & kKeySearch)
+   {
+      j = ((*pCurInvMenuItem) < iItemsPerLine * iPageLineOffset) ? ((*pCurInvMenuItem) / iItemsPerLine) : iPageLineOffset;
+      k = (*pCurInvMenuItem) % iItemsPerLine;
+
+      PAL_DrawText(PAL_GetWord(wObject), PAL_XY(15 + k * iItemTextWidth, 12 + j * 18), MENUITEM_COLOR_CONFIRMED, FALSE, FALSE, FALSE);
+      return wObject;
+   }
+
+   return 0xFFFF;
+}
+
+WORD PAL_ObjectSelectMenu(BYTE bObjectType)
+{
+   WORD             w;
+   DWORD            dwTime;
+   int giCurInvMenuItem = 0;
+
+   g_iNumInventory = 0;
+   LPOBJECTDESC   lpObjectDesc = gpGlobals->lpObjectDesc;
+   while (lpObjectDesc != NULL)
+   {
+      if (lpObjectDesc->bObjectType == bObjectType)
+      {
+         rgAllObject[g_iNumInventory] = lpObjectDesc->wObjectID;
+         g_iNumInventory++;
+      }
+
+      lpObjectDesc = lpObjectDesc->next;
+   }
+   
+   PAL_ClearKeyState();
+
+   dwTime = SDL_GetTicks();
+
+   while (TRUE)
+   {
+      PAL_MakeScene();
+
+      w = PAL_ObjectSelectMenuUpdate(&giCurInvMenuItem, bObjectType == 1);
+      VIDEO_UpdateScreen(NULL);
+
+      PAL_ClearKeyState();
+
+      PAL_ProcessEvent();
+      while (!SDL_TICKS_PASSED(SDL_GetTicks(), dwTime))
+      {
+         PAL_ProcessEvent();
+         if (g_InputState.dwKeyPress != 0)
+         {
+            break;
+         }
+         SDL_Delay(5);
+      }
+
+      dwTime = SDL_GetTicks() + FRAME_TIME;
+
+      if (w != 0xFFFF)
+      {
+         return w;
+      }
+
    }
 
    assert(FALSE);

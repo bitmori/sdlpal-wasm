@@ -44,6 +44,8 @@ PAL_ItemSelectMenu(
    WORD                      wItemFlags
 );
 
+WORD PAL_ObjectSelectMenu(BYTE bObjectType);
+
 PAL_C_LINKAGE_END
 
 #endif

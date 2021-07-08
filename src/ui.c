@@ -884,7 +884,7 @@ PAL_LoadObjectDesc(
    PAL_LARGE char             buf[512];
    char                      *p;
    LPOBJECTDESC               lpDesc = NULL, pNew = NULL;
-   unsigned int               i;
+   unsigned int               i, typ;
    CODEPAGE cp = PAL_DetectCodePage(lpszFileName);
 
    fp = UTIL_OpenFileForMode(lpszFileName, "r");
@@ -915,7 +915,8 @@ PAL_LoadObjectDesc(
 
       pNew = UTIL_calloc(1, sizeof(OBJECTDESC));
 
-      sscanf(buf, "%x", &i);
+      sscanf(buf, "%x@%x", &i, &typ);
+      pNew->bObjectType = typ;
       pNew->wObjectID = i;
       pNew->lpDesc = (LPWSTR)UTIL_malloc(wlen * sizeof(WCHAR));
       PAL_MultiByteToWideCharCP(cp, p, -1, pNew->lpDesc, wlen);
@@ -992,4 +993,24 @@ PAL_GetObjectDesc(
    }
 
    return NULL;
+}
+
+
+BYTE
+PAL_GetObjectType(
+   LPOBJECTDESC   lpObjectDesc,
+   WORD           wObjectID
+)
+{
+   while (lpObjectDesc != NULL)
+   {
+      if (lpObjectDesc->wObjectID == wObjectID)
+      {
+         return lpObjectDesc->bObjectType;
+      }
+
+      lpObjectDesc = lpObjectDesc->next;
+   }
+
+   return 0;
 }
