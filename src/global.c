@@ -2379,18 +2379,18 @@ PAL_TeamRemoveMember(
    WORD wPlayerRole
 )
 {
-   if (gpGlobals->rgParty[index].wPlayerRole != wPlayerRole) {
+   if (gpGlobals->rgParty[index].wPlayerRole != wPlayerRole || gpGlobals->wMaxPartyMemberIndex == 0) {
       return;
    }
    gpGlobals->rgParty[index].wPlayerRole = gpGlobals->rgParty[gpGlobals->wMaxPartyMemberIndex].wPlayerRole;
    gpGlobals->wMaxPartyMemberIndex--;
 
-   if (gpGlobals->wMaxPartyMemberIndex == 0)
-   {
-      // HACK for Dream 2.11
-      gpGlobals->rgParty[0].wPlayerRole = 0;
-      gpGlobals->wMaxPartyMemberIndex = 1;
-   }
+   // if (gpGlobals->wMaxPartyMemberIndex == 0)
+   // {
+   //    // HACK for Dream 2.11
+   //    gpGlobals->rgParty[0].wPlayerRole = 0;
+   //    gpGlobals->wMaxPartyMemberIndex = 1;
+   // }
 
    //
    // Reload the player sprites

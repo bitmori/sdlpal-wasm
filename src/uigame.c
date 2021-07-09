@@ -2004,7 +2004,6 @@ PAL_ItemCatalogMenu(
       
       int amount = PAL_SpinboxMenu(1, upper_bound, 1, CATALOGMENU_LABEL_GET, MENUITEM_COLOR_SELECTED);
       if (amount != MENUITEM_VALUE_CANCELLED && amount >= 1) {
-         gpGlobals->dwCash -= amount * gpGlobals->g.rgObject[w].item.wPrice;
          PAL_AddItemToInventory(w, amount);
       }
 
@@ -2325,7 +2324,6 @@ PAL_SellMenu(
 
       int amount = PAL_SpinboxMenu(1, PAL_CountItem(w), 1, SELLMENU_LABEL_SALE, MENUITEM_COLOR_INACTIVE);
       if (amount != MENUITEM_VALUE_CANCELLED && amount >= 1) {
-         gpGlobals->dwCash -= amount * gpGlobals->g.rgObject[w].item.wPrice;
          if (PAL_AddItemToInventory(w, -amount))
          {
             gpGlobals->dwCash += gpGlobals->g.rgObject[w].item.wPrice * amount / 2;
