@@ -67,7 +67,7 @@ static LPWSTR gc_rgszExtraWords[CP_MAX][EX_WORD_COUNT] = {
 	
 	 L"\x968A\x4F0D\x9396\x5B9A", L"\x52A0\x5165\x968A\x4F0D", L"\x96E2\x958B\x968A\x4F0D",
 	 L"\x5B78\x7FD2\x4ED9\x8853", L"\x5FD8\x8A18\x4ED9\x8853", L"\x4FEE\x6539\x5F62\x8C61",
-	 L"DumpSSS", L"Change",
+	 L"DumpData", L"Change",
 	},
 	{L"\x5496\x5561\x811a\x672c", L"\x60c5\x62a5", L"\x6bd2\x6297", L"\x5996\x529b", L"\x5077\x7a83", 
 	 L"\x653b\x51fb\x6548\x679c", L"\x98ce\x96f7\x6c34\x706b\x571f", 
@@ -77,7 +77,7 @@ static LPWSTR gc_rgszExtraWords[CP_MAX][EX_WORD_COUNT] = {
 	 L"\x961F\x4F0D\x8C03\x6574", L"\x6218\x573A\x67E5\x770B", L"\x5BF9\x8C61\x67E5\x770B", L"Softstar",
 	 L"\x961F\x4F0D\x9501\x5B9A", L"\x52A0\x5165\x961F\x4F0D", L"\x79BB\x5F00\x961F\x4F0D",
 	 L"\x5B66\x4E60\x4ED9\x672F", L"\x5FD8\x8BB0\x4ED9\x672F", L"\x4FEE\x6539\x5F62\x8C61",
-	 L"DumpSSS", L"Change",
+	 L"DumpData", L"Change",
 	 },
 };
 

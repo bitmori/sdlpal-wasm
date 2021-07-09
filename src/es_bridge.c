@@ -204,24 +204,24 @@ static char * va(const char *format, ...) {
 }
 
 WORD PAL_ExecuteECMAScript(LPDUKCONTEXT ctx, WORD wScriptID) {
-   if (gpGlobals->duk == NULL)
-   {
-      return -1;
-   }
-   FILE *file = fopen(va("%s%d%s", PAL_SAVE_PREFIX, wScriptID, ".js"), "r");
-   if (file == NULL)
-   {
-      return -1;
-   }
-   char buf[0xFFFF];
-   size_t len = fread((void *) buf, 1, sizeof(buf), file);
-   fclose(file);
-   duk_push_lstring(ctx, (const char *) buf, (duk_size_t) len);
-   if (duk_peval(ctx) != 0) {
-    printf("Script error: %s\n", duk_safe_to_string(ctx, -1));
-   }
-   duk_pop(ctx);
-   return 0;
+//    if (gpGlobals->duk == NULL)
+//    {
+//       return -1;
+//    }
+//    FILE *file = fopen(va("%s%d%s", PAL_SAVE_PREFIX, wScriptID, ".js"), "r");
+//    if (file == NULL)
+//    {
+//       return -1;
+//    }
+//    char buf[0xFFFF];
+//    size_t len = fread((void *) buf, 1, sizeof(buf), file);
+//    fclose(file);
+//    duk_push_lstring(ctx, (const char *) buf, (duk_size_t) len);
+//    if (duk_peval(ctx) != 0) {
+//     printf("Script error: %s\n", duk_safe_to_string(ctx, -1));
+//    }
+//    duk_pop(ctx);
+//    return 0;
 }
 
 VOID PAL_ExecuteECMAScriptBeforeStart(LPDUKCONTEXT ctx) {

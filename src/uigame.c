@@ -411,16 +411,6 @@ PAL_Spinbox(
    while (TRUE)
    {
       PAL_ClearKeyState();
-
-      //
-      // Redraw the selected item if needed.
-      //
-      // if (rgMenuItem[wCurrentItem].fEnabled)
-      // {
-      //    PAL_DrawText(PAL_GetWord(rgMenuItem[wCurrentItem].wNumWord),
-      //                 rgMenuItem[wCurrentItem].pos, MENUITEM_COLOR_SELECTED, FALSE, TRUE, FALSE);
-      // }
-
       PAL_ProcessEvent();
 
       if ((g_InputState.dwKeyPress & (kKeyDown | kKeyLeft)) && val - 1 >= lower_bound)
@@ -453,9 +443,25 @@ PAL_Spinbox(
             val = upper_bound;
          }
       }
+      else if (g_InputState.dwKeyPress & kKeyAuto)
+      {
+         // A
+         val = lower_bound;
+      }
+      else if (g_InputState.dwKeyPress & kKeyDefend)
+      {
+         // D
+         val = upper_bound;
+      }
       else if (g_InputState.dwKeyPress & kKeyRepeat)
       {
+         // R
          val = def_val;
+      }
+      else if (g_InputState.dwKeyPress & kKeyThrowItem)
+      {
+         // W
+         val = (lower_bound + upper_bound) / 2;
       }
       else if (g_InputState.dwKeyPress & kKeyMenu)
       {
@@ -716,7 +722,7 @@ PAL_ScriptSelectionMenu(VOID) {
    case 3:
    case 4:
    case 5:
-      PAL_ExecuteECMAScript(gpGlobals->duk, wReturnValue);
+      // PAL_ExecuteECMAScript(gpGlobals->duk, wReturnValue);
       break;
    default:
       break;
@@ -758,8 +764,8 @@ PAL_SystemMenu(
       { 2,      SYSMENU_LABEL_LOAD,          TRUE,     PAL_XY(53, 72 + 18) },
       { 3,      SYSMENU_LABEL_MUSIC,         TRUE,     PAL_XY(53, 72 + 36) },
       { 4,      SYSMENU_LABEL_SOUND,         TRUE,     PAL_XY(53, 72 + 54) },
-      { 5,      SYSMENU_LABEL_SCRIPT,        TRUE,     PAL_XY(53, 72 + 72) },
-      { 6,      SYSMENU_LABEL_QUIT,          TRUE,     PAL_XY(53, 72 + 90) },
+      { 5,      SYSMENU_LABEL_QUIT,        TRUE,     PAL_XY(53, 72 + 72) },
+      // { 6,      SYSMENU_LABEL_QUIT,          TRUE,     PAL_XY(53, 72 + 90) },
 #if !defined(PAL_CLASSIC)
       { 6,      SYSMENU_LABEL_BATTLEMODE,    TRUE,     PAL_XY(53, 72 + 90) },
 #endif
@@ -842,12 +848,14 @@ PAL_SystemMenu(
       AUDIO_EnableSound(PAL_SwitchMenu(AUDIO_SoundEnabled()));
       break;
 
+#if 0
    case 5:
       //
       // Script Menu
       //
       PAL_ScriptSelectionMenu();
       break;
+#endif
 #if !defined(PAL_CLASSIC)
    case 6:
       //
@@ -856,7 +864,7 @@ PAL_SystemMenu(
       PAL_BattleSpeedMenu();
       break;
 #endif
-   case 6:
+   case 5:
       //
       // Quit
       //
@@ -2744,12 +2752,6 @@ PAL_SoftstarMenu(VOID)
    rgMenuItem[i].pos = PAL_XY(150, y);
    i++;
    y+=18;
-   rgMenuItem[i].wValue = 103;
-   rgMenuItem[i].wNumWord = SSMENU_LABEL_DUMP;
-   rgMenuItem[i].fEnabled = TRUE;
-   rgMenuItem[i].pos = PAL_XY(150, y);
-   i++;
-   y+=18;
    //
    // Draw the box
    //
@@ -2774,10 +2776,17 @@ PAL_SoftstarMenu(VOID)
       } else if (w == 99 && PAL_ConfirmMenu()) {
          gpGlobals->fLockTeamMember = !gpGlobals->fLockTeamMember;
       } else if (w == 102) {
-         int amount = PAL_SpinboxMenu(1, 5, 1, 1, 0x8C);
-         if (amount != MENUITEM_VALUE_CANCELLED && amount >= 1) {
-            
-         }
+         // int amount = PAL_SpinboxMenu(1, 5, 1, 1, 0x8C);
+         // if (amount != MENUITEM_VALUE_CANCELLED && amount >= 1) {
+         // }
+         // PAL_LARGE SDL_Color palette[256];
+         // SDL_Color *pCurrentPalette = PAL_GetPalette(gpGlobals->wNumPalette, gpGlobals->fNightPalette);
+         // memcpy(palette, pCurrentPalette, sizeof(palette));
+         // printf("[Current palette] ");
+         // for (int iii = 0; iii < 256; iii++) {
+         //    printf("0x%x, ", palette[iii]);
+         // }
+         // printf("\n");
       }
 
       //

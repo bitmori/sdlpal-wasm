@@ -495,7 +495,7 @@ typedef struct tagPOISONSTATUS
 
 typedef struct tagGLOBALVARS
 {
-   LPDUKCONTEXT     duk;
+   // LPDUKCONTEXT     duk;
    FILES            f;
    GAMEDATA         g;
 
