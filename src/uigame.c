@@ -2321,14 +2321,25 @@ PAL_SellMenu(
       {
          break;
       }
-
-      int amount = PAL_SpinboxMenu(1, PAL_CountItem(w), 1, SELLMENU_LABEL_SALE, MENUITEM_COLOR_INACTIVE);
-      if (amount != MENUITEM_VALUE_CANCELLED && amount >= 1) {
-         if (PAL_AddItemToInventory(w, -amount))
+      INT amount = PAL_GetItemAmount(w);
+      if (amount == 1) {
+         if (PAL_ConfirmMenu()) {
+            if (PAL_AddItemToInventory(w, -1))
+            {
+               gpGlobals->dwCash += gpGlobals->g.rgObject[w].item.wPrice / 2;
+            }
+         }
+      } else {
+         amount = PAL_SpinboxMenu(1, amount, 1, SELLMENU_LABEL_SALE, MENUITEM_COLOR_INACTIVE);
+         if (amount != MENUITEM_VALUE_CANCELLED && amount >= 1)
          {
-            gpGlobals->dwCash += gpGlobals->g.rgObject[w].item.wPrice * amount / 2;
+            if (PAL_AddItemToInventory(w, -amount))
+            {
+               gpGlobals->dwCash += gpGlobals->g.rgObject[w].item.wPrice * amount / 2;
+            }
          }
       }
+      
    }
 }
 
