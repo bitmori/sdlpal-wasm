@@ -1884,8 +1884,8 @@ PAL_BuyMenu(
       {
          break;
       }
-      int upper_bound = min(99, gpGlobals->dwCash / gpGlobals->g.rgObject[w].item.wPrice - PAL_CountItem(w));
-      
+      int upper_bound = min(99 - PAL_GetItemAmount(w), gpGlobals->dwCash / gpGlobals->g.rgObject[w].item.wPrice);
+
       int amount = PAL_SpinboxMenu(1, upper_bound, 1, BUYMENU_LABEL_GAIN, MENUITEM_COLOR_SELECTED);
       if (amount != MENUITEM_VALUE_CANCELLED && amount >= 1) {
          gpGlobals->dwCash -= amount * gpGlobals->g.rgObject[w].item.wPrice;
