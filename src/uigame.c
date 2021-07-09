@@ -2782,8 +2782,8 @@ PAL_SoftstarMenu(VOID)
          if (amount != MENUITEM_VALUE_CANCELLED && amount >= 1) {
             gpGlobals->nExpMultiplier = amount;
          }
-      } else if (w == 99 && PAL_ConfirmMenu()) {
-         gpGlobals->fLockTeamMember = !gpGlobals->fLockTeamMember;
+      } else if (w == 99) {
+         gpGlobals->fLockTeamMember = PAL_ConfirmMenu();
       } else if (w == 102) {
          // int amount = PAL_SpinboxMenu(1, 5, 1, 1, 0x8C);
          // if (amount != MENUITEM_VALUE_CANCELLED && amount >= 1) {
