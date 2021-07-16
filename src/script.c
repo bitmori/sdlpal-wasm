@@ -935,6 +935,18 @@ PAL_InterpretInstruction(
       else
       {
          gpGlobals->dwCash += (SHORT)(pScript->rgwOperand[0]);
+         if (pScript->rgwOperand[2]) {
+            j = gpGlobals->g.rgObject[pScript->rgwOperand[2]].magic.wMagicNumber;
+            if (gpGlobals->g.lprgMagic[j].wUnknown == 0) {
+               gpGlobals->g.lprgMagic[j].wUnknown = gpGlobals->g.lprgMagic[j].wBaseDamage;
+            } else {
+               gpGlobals->g.lprgMagic[j].wBaseDamage = gpGlobals->g.lprgMagic[j].wUnknown;
+            }
+            if (gpGlobals->rgPlayerStatus[gpGlobals->rgParty[g_Battle.wMovingPlayerIndex].wPlayerRole][kStatusImpules] > 0)
+            {
+               gpGlobals->g.lprgMagic[j].wBaseDamage *= 2;
+            }
+         }
       }
       break;
 
@@ -2547,6 +2559,10 @@ PAL_InterpretInstruction(
       gpGlobals->dwCash -= i;
       j = gpGlobals->g.rgObject[pScript->rgwOperand[0]].magic.wMagicNumber;
       gpGlobals->g.lprgMagic[j].wBaseDamage = i * 2 / 5;
+      if (gpGlobals->rgPlayerStatus[gpGlobals->rgParty[g_Battle.wMovingPlayerIndex].wPlayerRole][kStatusImpules] > 0)
+      {
+         gpGlobals->g.lprgMagic[j].wBaseDamage *= 2;
+      }
       break;
 
    case 0x0089:

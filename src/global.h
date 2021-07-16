@@ -54,6 +54,7 @@ typedef enum tagSTATUS
    kStatusProtect,       // more defense value
    kStatusHaste,         // faster
    kStatusDualAttack,    // dual attack
+   kStatusImpules,       // throw attack double
    kStatusAll
 } STATUS;
 

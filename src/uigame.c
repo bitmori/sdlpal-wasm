@@ -2793,9 +2793,11 @@ PAL_SoftstarMenu(VOID)
          // memcpy(palette, pCurrentPalette, sizeof(palette));
          // printf("[Current palette] ");
          // for (int iii = 0; iii < 256; iii++) {
-         //    printf("0x%x, ", palette[iii]);
+         //    printf("0x00%02x%02x%02x, ", palette[iii].b, palette[iii].g, palette[iii].r);
          // }
          // printf("\n");
+         PAL_IncreaseHPMP(0, 999, 999);
+         PAL_StartBattle(5, FALSE);
       }
 
       //

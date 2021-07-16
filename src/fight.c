@@ -5259,7 +5259,10 @@ PAL_BattleSimulateMagic(
             {
                sDamage = 0;
             }
-
+            if (gpGlobals->rgPlayerStatus[gpGlobals->rgParty[g_Battle.wMovingPlayerIndex].wPlayerRole][kStatusImpules] > 0)
+            {
+               sDamage *= 2;
+            }
             g_Battle.rgEnemy[i].e.wHealth -= sDamage;
          }
       }
@@ -5283,7 +5286,10 @@ PAL_BattleSimulateMagic(
          {
             sDamage = 0;
          }
-
+         if (gpGlobals->rgPlayerStatus[gpGlobals->rgParty[g_Battle.wMovingPlayerIndex].wPlayerRole][kStatusImpules] > 0)
+         {
+            sDamage *= 2;
+         }
          g_Battle.rgEnemy[sTarget].e.wHealth -= sDamage;
       }
    }

@@ -60,7 +60,7 @@ static LPWSTR gc_rgszSDLPalWords[CP_MAX][SDLPAL_EXTRA_WORD_COUNT] = {
 static LPWSTR gc_rgszExtraWords[CP_MAX][EX_WORD_COUNT] = {
 	{L"\x5496\x5561\x8173\x672c", L"\x60c5\x5831", L"\x6bd2\x6297", L"\x5996\x529b", L"\x5077\x7aca", 
 	 L"\x653b\x64ca\x6548\x679c", L"\x98a8\x96f7\x6c34\x706b\x571f", 
-	 L"\x5080\x5121", L"\x5929\x7f61", L"\x91d1\x525b", L"\x4ed9\x98a8", L"\x9189\x4ed9", 
+	 L"\x5080\x5121", L"\x5929\x7f61", L"\x91d1\x525b", L"\x4ed9\x98a8", L"\x9189\x4ed9", L"\x5E7B\x5203",
 	 L"\x8CFC\x8CB7", L"\x5178\x7576",
 
 	 L"\x968A\x4F0D\x8ABF\x6574", L"\x6230\x5834\x67E5\x770B", L"\x5C0D\x8C61\x67E5\x770B", L"Softstar",
@@ -71,7 +71,7 @@ static LPWSTR gc_rgszExtraWords[CP_MAX][EX_WORD_COUNT] = {
 	},
 	{L"\x5496\x5561\x811a\x672c", L"\x60c5\x62a5", L"\x6bd2\x6297", L"\x5996\x529b", L"\x5077\x7a83", 
 	 L"\x653b\x51fb\x6548\x679c", L"\x98ce\x96f7\x6c34\x706b\x571f", 
-	 L"\x5080\x5121", L"\x5929\x7f61", L"\x91d1\x521a", L"\x4ed9\x98ce", L"\x9189\x4ed9", 
+	 L"\x5080\x5121", L"\x5929\x7f61", L"\x91d1\x521a", L"\x4ed9\x98ce", L"\x9189\x4ed9", L"\x5E7B\x5203",
 	 L"\x8D2D\x4E70", L"\x5178\x5F53",
 	 
 	 L"\x961F\x4F0D\x8C03\x6574", L"\x6218\x573A\x67E5\x770B", L"\x5BF9\x8C61\x67E5\x770B", L"Softstar",

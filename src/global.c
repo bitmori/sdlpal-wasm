@@ -2193,6 +2193,7 @@ PAL_SetPlayerStatus(
    case kStatusProtect:
    case kStatusDualAttack:
    case kStatusHaste:
+   case kStatusImpules:
       //
       // for "good" statuses, reset the status if the status to be set lasts longer
       //

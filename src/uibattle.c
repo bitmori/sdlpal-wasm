@@ -77,6 +77,7 @@ PAL_PlayerInfoBox(
       {0, 0},    // protect
       {0, 0},    // haste
       {0, 0},    // dualattack
+      {0, 0},    // impulse
    };
 
    const WORD      rgwStatusWord[kStatusAll] =
@@ -90,6 +91,7 @@ PAL_PlayerInfoBox(
       0x00,  // protect
       0x00,  // haste
       0x00,  // dualattack
+      0x00,  // impulse
    };
 
    const BYTE      rgbStatusColor[kStatusAll] =
@@ -103,6 +105,7 @@ PAL_PlayerInfoBox(
       0x00,  // protect
       0x00,  // haste
       0x00,  // dualattack
+      0x00,  // impulse
    };
 
    //
