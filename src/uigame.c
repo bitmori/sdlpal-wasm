@@ -1767,8 +1767,8 @@ PAL_BuyMenu_OnItemChange(
    if (PAL_MKFReadChunk(bufImage, 2048,
       gpGlobals->g.rgObject[wCurrentItem].item.wBitmap, gpGlobals->f.fpBALL) > 0)
    {
-      if( __buymenu_firsttime_render )
-         PAL_RLEBlitToSurfaceWithShadow(bufImage, gpScreen, PAL_XY(42+6, 16+6), TRUE);
+      // if( __buymenu_firsttime_render )
+      //    PAL_RLEBlitToSurfaceWithShadow(bufImage, gpScreen, PAL_XY(42+6, 16+6), TRUE);
       PAL_RLEBlitToSurface(bufImage, gpScreen, PAL_XY(42, 16));
    }
 
@@ -1969,6 +1969,204 @@ PAL_SpecialBuyMenu(
       if (amount != MENUITEM_VALUE_CANCELLED && amount >= 1) {
          gpGlobals->dwCash -= amount * gpGlobals->g.rgObject[w].item.wPrice;
          PAL_AddItemToInventory(w, amount);
+      }
+
+      //
+      // Place the cursor to the current item on next loop
+      //
+      for (y = 0; y < i; y++)
+      {
+         if (w == rgMenuItem[y].wValue)
+         {
+            w = y;
+            break;
+         }
+      }
+   }
+}
+
+static VOID
+PAL_AlchemyMenu_OnItemChange(
+   WORD           wCurrentItem
+)
+/*++
+  Purpose:
+
+    Callback function which is called when player selected another item
+    in the buy menu.
+
+  Parameters:
+
+    [IN]  wCurrentItem - current item on the menu, indicates the object ID of
+                         the currently selected item.
+
+  Return value:
+
+    None.
+
+--*/
+{
+   const SDL_Rect      rect = {20, 8, 300, 175};
+   int                 i, n;
+   PAL_LARGE BYTE      bufImage[2048];
+
+   if( __buymenu_firsttime_render )
+      PAL_RLEBlitToSurfaceWithShadow(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_ITEMBOX), gpScreen, PAL_XY(35+6, 8+6), TRUE);
+   //
+   // Draw the picture of current selected item
+   //
+   PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_ITEMBOX), gpScreen,
+      PAL_XY(35, 8));
+
+   if (PAL_MKFReadChunk(bufImage, 2048,
+      gpGlobals->g.rgObject[wCurrentItem].item.wBitmap, gpGlobals->f.fpBALL) > 0)
+   {
+      PAL_RLEBlitToSurface(bufImage, gpScreen, PAL_XY(42, 16));
+   }
+
+   //
+   // See how many of this item we have in the inventory
+   //
+   n = 0;
+
+   for (i = 0; i < MAX_INVENTORY; i++)
+   {
+      if (gpGlobals->rgInventory[i].wItem == 0)
+      {
+         break;
+      }
+      else if (gpGlobals->rgInventory[i].wItem == wCurrentItem)
+      {
+         n = gpGlobals->rgInventory[i].nAmount;
+         break;
+      }
+   }
+
+   // if( __buymenu_firsttime_render )
+   //    PAL_CreateSingleLineBoxWithShadow(PAL_XY(20, 105), 5, FALSE, 6);
+   // else
+   // //
+   // // Draw the amount of this item in the inventory
+   // //
+   // PAL_CreateSingleLineBoxWithShadow(PAL_XY(20, 105), 5, FALSE, 0);
+   // PAL_DrawText(PAL_GetWord(BUYMENU_LABEL_CURRENT), PAL_XY(30, 115), 0, FALSE, FALSE, FALSE);
+   // PAL_DrawNumber(n, 6, PAL_XY(69, 159), kNumColorYellow, kNumAlignRight);
+
+   if( __buymenu_firsttime_render )
+      PAL_CreateSingleLineBoxWithShadow(PAL_XY(20, 145), 5, FALSE, 6);
+   else
+   //
+   // Draw the producible amout
+   //
+   PAL_CreateSingleLineBoxWithShadow(PAL_XY(20, 145), 5, FALSE, 0);
+   PAL_DrawText(PAL_GetWord(BUYMENU_LABEL_CURRENT), PAL_XY(30, 155), 0, FALSE, FALSE, FALSE);
+   PAL_DrawNumber(n, 6, PAL_XY(69, 159), kNumColorYellow, kNumAlignRight);
+
+   VIDEO_UpdateScreen(&rect);
+   
+   __buymenu_firsttime_render = FALSE;
+}
+
+static BYTE
+PAL_IsFormulaValid(
+   LPALCHEMYFORMULA    lpFormula
+)
+{
+   BYTE max_product = 99 - PAL_GetItemAmount(lpFormula->wObjectID);
+   LPALCHEMYINGREDIENT pCurr = lpFormula->ingredients;
+   while (pCurr != NULL) {
+      WORD count = PAL_GetItemAmount(pCurr->wObjectID);
+      max_product = min(max_product, count / pCurr->wCount);
+      if (max_product == 0) {
+         return max_product;
+      }
+      pCurr = pCurr->next;
+   }
+   return max_product;
+}
+
+static VOID
+PAL_ProduceNewItem(LPALCHEMYFORMULA lpFormula, BYTE bAmount) {
+   LPALCHEMYINGREDIENT pCurr = lpFormula->ingredients;
+   while (pCurr != NULL) {
+      if (pCurr->wCount != 0) {
+         PAL_AddItemToInventory(pCurr->wObjectID, -(pCurr->wCount * bAmount));
+         pCurr = pCurr->next;
+      }
+   }
+   PAL_AddItemToInventory(lpFormula->wObjectID, bAmount);
+}
+
+
+VOID
+PAL_AlchemyMenu(VOID) {
+   MENUITEM        rgMenuItem[MAX_STORE_ITEM];
+   LPALCHEMYFORMULA  rgpFormula[MAX_STORE_ITEM];
+   int             i, y;
+   WORD            w;
+   SDL_Rect        rect = {125, 8, 190, 190};
+
+   //
+   // create the menu items
+   //
+   y = 22;
+
+   LPALCHEMYFORMULA lpFormula = gpGlobals->lpAlchemyFormula;
+   i = 0;
+   while (lpFormula != NULL && i < MAX_STORE_ITEM) {
+      if (lpFormula->wKeyIngredientID != 0 && PAL_CountItem(lpFormula->wKeyIngredientID) == 0) {
+         // key ingredient is not present, not visible.
+         lpFormula = lpFormula->next;
+         continue;
+      }
+      rgMenuItem[i].wValue = lpFormula->wObjectID;
+      rgMenuItem[i].wNumWord = lpFormula->wObjectID;
+      rgMenuItem[i].fEnabled = PAL_IsFormulaValid(lpFormula);
+      rgMenuItem[i].pos = PAL_XY(150, y);
+      rgpFormula[i] = lpFormula;
+      lpFormula = lpFormula->next;
+      i++;
+      y += 18;
+   }
+
+   //
+   // Draw the box
+   //
+   PAL_CreateBox(PAL_XY(125, 8), 8, 8, 1, FALSE);
+
+   //
+   // Draw the number of prices
+   //
+   for (y = 0; y < i; y++)
+   {
+      w = rgMenuItem[y].fEnabled;
+      PAL_DrawNumber(w, 6, PAL_XY(235, 25 + y * 18), kNumColorCyan, kNumAlignRight);
+   }
+
+   w = 0;
+   __buymenu_firsttime_render = TRUE;
+
+   while (TRUE)
+   {
+      w = PAL_ReadMenu(PAL_AlchemyMenu_OnItemChange, rgMenuItem, i, w, MENUITEM_COLOR);
+
+      if (w == MENUITEM_VALUE_CANCELLED)
+      {
+         break;
+      }
+      int j;
+      for (j = 0; j < MAX_STORE_ITEM; j++)
+      {
+         if (rgpFormula[j]->wObjectID == w)
+         {
+             break;
+         }
+      }
+      int upper_bound = rgMenuItem[j].fEnabled;
+      int amount = PAL_SpinboxMenu(1, upper_bound, upper_bound, ALCHEMYMENU_LABEL_SYNTH, MENUITEM_COLOR_SELECTED);
+      if (amount != MENUITEM_VALUE_CANCELLED && amount >= 1) {
+         PAL_ProduceNewItem(rgpFormula[j], amount);
+         return;
       }
 
       //

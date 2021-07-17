@@ -111,6 +111,9 @@ PAL_TeamFormationMenu(
 VOID
 PAL_DevMenu(VOID);
 
+VOID
+PAL_AlchemyMenu(VOID);
+
 PAL_C_LINKAGE_END
 
 #endif

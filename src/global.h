@@ -28,6 +28,7 @@
 #include "map.h"
 #include "ui.h"
 #include "es_bridge.h"
+#include "alchemy.h"
 
 //
 // SOME NOTES ON "AUTO SCRIPT" AND "TRIGGER SCRIPT":
@@ -549,6 +550,7 @@ typedef struct tagGLOBALVARS
    BOOL             fLockTeamMember;
    USHORT           nExpMultiplier;
    WORD             nValidObjectCount;
+   LPALCHEMYFORMULA lpAlchemyFormula;
 } GLOBALVARS, *LPGLOBALVARS;
 
 PAL_C_LINKAGE_BEGIN

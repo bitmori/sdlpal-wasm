@@ -3083,7 +3083,21 @@ PAL_InterpretInstruction(
       //
       VIDEO_BackupScreen(gpScreen);
       break;
-
+   case 0x00AA:
+      //
+      // show alchemy menu!
+      //
+      PAL_ControlAlchemyFormula(gpGlobals->lpAlchemyFormula, pScript->rgwOperand[0]);
+      PAL_MakeScene();
+      VIDEO_UpdateScreen(NULL);
+      PAL_AlchemyMenu();
+      break;
+   case 0x00AB:
+      //
+      // register alchemy recipe
+      //
+      gpGlobals->lpAlchemyFormula = PAL_AddAlchemyFormula(gpGlobals->lpAlchemyFormula, pScript->rgwOperand[0], pScript->rgwOperand[1], pScript->rgwOperand[2]);
+      break;
    default:
       TerminateOnError("SCRIPT: Invalid Instruction at %4x: (%4x - %4x, %4x, %4x)",
          wScriptEntry, pScript->wOperation, pScript->rgwOperand[0],

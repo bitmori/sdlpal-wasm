@@ -113,6 +113,7 @@
 
 #define BUYMENU_LABEL_GAIN                 (PAL_EXTRA_STATUS_LABEL_START + 11)
 #define SELLMENU_LABEL_SALE                (PAL_EXTRA_STATUS_LABEL_START + 12)
+#define ALCHEMYMENU_LABEL_SYNTH            0x2a
 
 #define DEVMENU_LABEL_TEAM                 (PAL_EXTRA_STATUS_LABEL_START + 13)
 #define DEVMENU_LABEL_BG                   (DEVMENU_LABEL_TEAM   + 1)

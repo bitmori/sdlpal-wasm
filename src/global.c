@@ -207,6 +207,7 @@ PAL_InitGlobals(
    gpGlobals->lpObjectDesc = gConfig.fIsWIN95 ? NULL : PAL_LoadObjectDesc("desc.dat");
    gpGlobals->bCurrentSaveSlot = 1;
 
+   gpGlobals->lpAlchemyFormula = NULL;
    return 0;
 }
 
@@ -260,6 +261,7 @@ PAL_FreeGlobals(
    if (!gConfig.fIsWIN95)
       PAL_FreeObjectDesc(gpGlobals->lpObjectDesc);
 
+   PAL_FreeAlchemyFormula(gpGlobals->lpAlchemyFormula);
    //
    // Clear the instance
    //
