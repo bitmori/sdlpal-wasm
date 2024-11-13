@@ -192,6 +192,7 @@ static void PAL_LoadEmbeddedFont(void)
 	_font_height = 15;
 }
 
+#if 0
 INT
 PAL_LoadUserFont(
    LPCSTR      pszBdfFileName
@@ -363,6 +364,7 @@ PAL_LoadUserFont(
    fclose(fp);
    return 0;
 }
+#endif
 
 int
 PAL_InitFont(
@@ -394,11 +396,14 @@ PAL_InitFont(
       PAL_LoadISOFont();
    }
 
+#if 0
    if (cfg->pszFontFile)
    {
       PAL_LoadUserFont(cfg->pszFontFile);
    }
-   else if (_font_height != 15)
+   else
+#endif
+   if (_font_height != 15)
    {
       switch (g_TextLib.iFontFlavor)
       {

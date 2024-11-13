@@ -52,7 +52,7 @@
 # include <ctype.h>
 # include <sys/time.h>
 
-#define strcasestr(a,b) strstr(toupper((a)),toupper((b)))
+//#define strcasestr(a,b) strstr(toupper((a)),toupper((b)))
 
 #define PAL_HAS_GLSL 1
 #define PAL_HAS_OPUS 0
