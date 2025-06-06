@@ -1,0 +1,1 @@
+option('pal_has_touch', type: 'boolean', value: false, description: 'Enable touch input support')

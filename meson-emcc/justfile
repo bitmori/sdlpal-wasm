@@ -1,0 +1,14 @@
+default:
+	just --list
+
+build-docker-img:
+	docker build -t empal-dev .
+
+enter:
+	docker run --rm -it -v "$PWD":/src empal-dev
+
+buildit:
+	meson setup build --cross-file emscripten-cross-file.txt
+	meson compile -C build
+	emrun build/sdlpal.html
+
